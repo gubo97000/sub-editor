@@ -1,0 +1,41 @@
+button{
+    border-radius: 8px;
+    /* border: 1px solid; */
+    border: none;
+    padding: 4px 12px;
+    margin: 4px;
+    background-color: rgba(21, 141, 43, 0.472);
+    cursor: pointer;
+
+    &:hover{
+        background-color: rgba(21, 141, 43, 0.8);
+    }
+    &:active{
+        background-color: rgba(68, 233, 98, 0.48);
+    }
+    &:focus{
+        outline: none;
+    }
+}
+
+body{
+
+    background-color: rgba(43, 216, 75, 0.096);
+}
+
+.activeTab {
+    height: 100%;
+    background-color: rgba(36, 158, 58, 0.279);
+    overflow: auto;
+    border-radius: 12px;
+    padding: 8px;
+    &:is(button) {
+        border: 1px solid rgba(7, 55, 31, 0.297);
+    }
+    & > * {
+        height: 100%;
+    }
+}
+*{
+    box-sizing: border-box;
+}

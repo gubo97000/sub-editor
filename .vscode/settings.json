@@ -1,0 +1,19 @@
+{
+    "workbench.colorCustomizations": {
+        "sash.hoverBorder": "#35ed8b",
+        "activityBar.activeBackground": "#35ed8b",
+        "activityBar.background": "#35ed8b",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#ab6df2",
+        "activityBarBadge.foreground": "#15202b"
+    },
+    "peacock.color": "#14db71",
+    "html.customData": [
+        "./node_modules/vidstack/vscode.html-data.json"
+    ],
+"editor.codeActionsOnSave": [
+        // "source.organizeImports",
+        "source.sortImports",
+        "source.fixAll.eslint",
+    ],}
