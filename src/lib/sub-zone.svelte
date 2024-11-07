@@ -1,12 +1,8 @@
 <script>
-	import LlmZone from '$lib/llm-zone.svelte';
-	import Ltrsl from '$lib/ltrsl.svelte';
 	import { getSubState } from '$lib/stores/subState.svelte';
-	import { parseByteStream, parseResponse, parseText } from 'media-captions';
-	import Papa from 'papaparse';
-	import { onMount } from 'svelte';
 
-	import { convertToSrt, VTTToSrt } from '../lib/subs.js';
+	import { VTTToSrt } from '../lib/subs.js';
+	import LtrslSingle from './ltrsl-single.svelte';
 	import { getGlobState } from './stores/globalStatus.svelte.js';
 
 	const { subState } = getSubState();
@@ -126,12 +122,18 @@
 					</td>
 					{#if typeof subState.subs['fi-FI']?.content === 'object' && subState.subs['fi-FI']?.content.cues}
 						<td>
-							<div
-								contenteditable="true"
-								bind:textContent={subState.subs['fi-FI'].content.cues[cueIndex].text}
-							>
-								{subState.subs['fi-FI'].content.cues[cueIndex].text}
-							</div>
+							{#if subState.subs['fi-FI'].content.cues[cueIndex].text.includes('ErrorInChunk')}
+							<LtrslSingle chunkNumber={subState.subs['fi-FI'].content.cues[cueIndex].text.split('-')[1]} />
+							{/if}
+						
+						<div
+						contenteditable="true"
+						bind:textContent={subState.subs['fi-FI'].content.cues[cueIndex].text}
+					>
+						{subState.subs['fi-FI'].content.cues[cueIndex].text}
+					</div>
+						
+							
 						</td>
 					{/if}
 				</tr>

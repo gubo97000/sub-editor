@@ -15,13 +15,14 @@
 	import 'vidstack/player/styles/base.css';
 	import 'vidstack/player/styles/plyr/theme.css';
 	import 'vidstack/player/ui';
-	import { convertToSrt, VTTToSrt } from '../lib/subs.js';
 
-
-	// import type { MediaPlayerElement } from 'vidstack/elements';
+	//svelte get the slug named if
 
 	const { subState } = getSubState();
 	const { globState: gs } = getGlobState();
+
+	const { data } = $props();
+	console.log($state.snapshot(data));
 
 	/** @type {import('vidstack/elements').MediaPlayerElement?} } */
 	let player = $state(null);
@@ -40,6 +41,7 @@
 	let correctTranslateSub = $state(false);
 	/** @type {'transcriptionHelper' | 'translationHelper'} */
 	let showTab = $state('transcriptionHelper');
+
 	let videoLib = $derived.by(() => {
 		/**
 		 * @type {Object<
@@ -65,8 +67,7 @@
 			}
 			for (const file of directory) {
 				const fileName = file.name.split('.').slice(0, -1).join();
-				// if (file.webkitRelativePath.includes('/output/')) {
-				if (file.webkitRelativePath.includes('/SubtitlesLukas/')) {
+				if (file.webkitRelativePath.includes('/output/')) {
 					// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
 					if (file.type.includes('json')) {
 						videoLib[fileName]['errorFile'] = file;
@@ -101,7 +102,7 @@
 		);
 		return videoLib;
 	});
-
+	console.log(data);
 	const updateSubs = () => {
 		if (!player) return;
 		console.log(subState.subs);
@@ -109,9 +110,9 @@
 			if (sub.content) {
 				// console.log('sub', sub);
 				// console.log(sub.content);
-				// sub.content.cues.forEach((cue) => {
-				// 	console.log(cue.text);
-				// });
+				sub.content.cues.forEach((cue) => {
+					console.log(cue.text);
+				});
 				// console.log(sub.content.cues[0]);
 				// console.log(sub.content.cues[0].text);
 			}
@@ -122,7 +123,7 @@
 			})?.id ?? 'en-US';
 		player.textTracks.clear();
 		for (const [_, sub] of Object.entries(subState.subs)) {
-			console.log($state.snapshot(sub));
+			console.log(sub);
 			player.textTracks.add({ ...sub, default: sub.id === trackShowing });
 		}
 
@@ -262,60 +263,55 @@
 		});
 		console.log(player?.src);
 	});
+
+	// fetch("/api/v1/proxy/"+data.sessionData.Urls.CaptionDownloadUrl.split("/Panopto/")[1]).then((res) => {
+	fetch(data.sessionData.Urls.CaptionDownloadUrl,{
+		credentials: 'include',
+	}).then((res) => {
+		res.text().then((text) => {
+			if (!text) {
+				console.error('no text');
+				return;
+			}
+			parseText(text, { type: 'srt' }).then((res) => {
+				const cont = {
+					cues: res.cues.map((cue) => {
+						return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
+					})
+				};
+				subState.subs['en-US'] = {
+					id: 'en-US',
+					content: $state.snapshot(cont),
+					label: `English-Loaded`,
+					kind: 'captions',
+					default: true,
+					language: 'en-US',
+					type: 'json'
+				};
+			});
+		});
+	});
+
 </script>
 
 <div class="container">
-	<!-- <div>
-		<AuthButton />
-		<ApiTest></ApiTest>
-	</div> -->
 	<!-- {#each subtitlesArray as subs}
 		<SubtitleContainer title={subs.name} data={subs.data} />
 	{/each} -->
 	<!-- src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" -->
 	<div style="position:sticky; top:0; height: 100vh; display:flex; flex-direction: column;">
-		<media-player
-			src="https://aalto.cloud.panopto.eu/Panopto/Podcast/Download/0a9d6bf7-d7b6-4383-9bad-b1d10084d451.mp4?mediaTargetType=videoPodcast"
-			bind:this={player}
-		>
-			<media-provider> </media-provider>
+		<media-player src={data.sessionData.Urls.DownloadUrl} bind:this={player}>
+			<media-provider>
+				<track
+					kind="captions"
+					src={data.sessionData.Urls.CaptionDownloadUrl}
+					srclang="en"
+					label="English"
+					default
+				/>
+			</media-provider>
 			<media-plyr-layout></media-plyr-layout>
 		</media-player>
-		<!-- <details open={!subState.subs?.["en-US"]}> -->
-		<details open={true}>
-			<summary>Manage Local Folder</summary>
-			<button onclick={updateSubs}>Update Subtitles</button>
-			<p>Folder Load (set the parent folder that contains video and subs)</p>
-			<div>
-				<div>
-					<label for="folder-btn" class="btn">Select Folder</label>
-					<input id="files" style="visibility:hidden;" type="file">
-					<input id="files" type="file" bind:files={directory} webkitdirectory />
-				  </div>
-				
-				<select bind:value={gs.selectedVideo}>
-					{#each Object.entries(videoLib).sort((a, b) => {
-						return a[0] > b[0] ? 1 : -1;
-					}) as [key, video]}
-						<option value={key}>{key}</option>
-					{/each}
-				</select>
-				<div>
-					{#if gs.selectedVideo && videoLib[gs.selectedVideo].subCorFile}
-						<label for="correctSub">
-							<input type="checkbox" id="correctSub" bind:checked={correctSub} />
-							Correct Subs
-						</label>
-					{/if}
-					{#if gs.selectedVideo && videoLib[gs.selectedVideo].subCorFinFile}
-						<label for="correctTranslateSub">
-							<input type="checkbox" id="correctTranslateSub" bind:checked={correctTranslateSub} />
-							Correct Translate
-						</label>
-					{/if}
-				</div>
-			</div>
-		</details>
 		<br />
 		<!-- <div>
 			Legacy

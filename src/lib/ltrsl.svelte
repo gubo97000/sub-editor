@@ -40,12 +40,24 @@
 
 			// Await all promises and maintain order
 			const results = await Promise.all(promises);
-			console.log(results);
+			const prStatus = await Promise.allSettled(promises);
+			console.log(prStatus);
 			// Extract the `kwargs` from each result and flatten them
 			/** @type string[] */
-			const response = results.flatMap((result) => {
+			const response = results.flatMap((result, index) => {
 				console.log(result.kwargs);
-				return JSON.parse(result.kwargs.content);
+				if (prStatus[index].status !== 'fulfilled') {
+					return Array(chunks[index].length).fill(`ServerErrorInChunk-${index}`);
+				}
+				try {
+					const res = JSON.parse(result.kwargs.content);
+					if (chunks[index].length !== res.length) {
+						return Array(chunks[index].length).fill(`LengthErrorInChunk-${index}`);
+					}
+					return res;
+				} catch (e) {
+					return Array(chunks[index].length).fill(`ContentErrorInChunk-${index}`);
+				}
 			});
 
 			console.log(response);
