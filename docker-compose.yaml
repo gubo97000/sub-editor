@@ -1,0 +1,23 @@
+services:
+  reverse-proxy:
+    image: nginx:1.27-alpine
+    container_name: sub-editor-reverse-proxy
+    restart: always
+    ports:
+      - 443:443
+      - 80:80
+    volumes:
+      - ${CERT_FILE}:/etc/ssl/sub-editor/fullchain.pem
+      - ${CERT_KEY_FILE}:/etc/ssl/sub-editor/privkey.pem
+      # We use the /templates/ folder because we need to be able to use
+      # ${SERVER_NAME} in the nginx.conf
+      - ./reverse-proxy.conf:/etc/nginx/templates/nginx.conf.template
+    environment:
+      SERVER_NAME: '${SERVER_NAME}'
+
+  sveltekit:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: sub-editor
+
