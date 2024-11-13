@@ -17,7 +17,5 @@ services:
 
   sveltekit:
     build:
-      context: .
       dockerfile: ./Dockerfile
-    container_name: sub-editor
-
+    container_name: frontend

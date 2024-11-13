@@ -29,7 +29,7 @@ ENV NODE_ENV development
 
 WORKDIR /app
 
-COPY package*.json pnpm-lock.yaml* ./
+COPY package*.json npm-lock.json* ./
 
 RUN npm i
 
@@ -47,6 +47,6 @@ COPY --from=0 /app .
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 80
 
 CMD ["node", "./build"]
