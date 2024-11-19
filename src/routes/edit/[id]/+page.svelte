@@ -265,8 +265,8 @@
 	});
 
 	// fetch("/api/v1/proxy/"+data.sessionData.Urls.CaptionDownloadUrl.split("/Panopto/")[1]).then((res) => {
-	fetch(data.sessionData.Urls.CaptionDownloadUrl,{
-		credentials: 'include',
+	fetch(data.sessionData.Urls.CaptionDownloadUrl, {
+		credentials: 'include'
 	}).then((res) => {
 		res.text().then((text) => {
 			if (!text) {
@@ -292,6 +292,32 @@
 		});
 	});
 
+	fetch(data.sessionData.Urls.DownloadUrl, {
+		credentials: 'include'
+	}).then((res) => {
+		// res.text().then((text) => {
+		// 	if (!text) {
+		// 		console.error('no text');
+		// 		return;
+		// 	}
+		// 	parseText(text, { type: 'srt' }).then((res) => {
+		// 		const cont = {
+		// 			cues: res.cues.map((cue) => {
+		// 				return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
+		// 			})
+		// 		};
+		// 		subState.subs['en-US'] = {
+		// 			id: 'en-US',
+		// 			content: $state.snapshot(cont),
+		// 			label: `English-Loaded`,
+		// 			kind: 'captions',
+		// 			default: true,
+		// 			language: 'en-US',
+		// 			type: 'json'
+		// 		};
+		// 	});
+		// });
+	});
 </script>
 
 <div class="container">
@@ -300,15 +326,22 @@
 	{/each} -->
 	<!-- src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" -->
 	<div style="position:sticky; top:0; height: 100vh; display:flex; flex-direction: column;">
-		<media-player src={data.sessionData.Urls.DownloadUrl} bind:this={player}>
+		<media-player
+			src={data.sessionData.Urls.DownloadUrl}
+			bind:this={player}
+			{...{
+				// crossorigin: 'anonymous'
+				// crossorigin: "use-credentials",
+			}}
+		>
 			<media-provider>
-				<track
+				<!-- <track
 					kind="captions"
 					src={data.sessionData.Urls.CaptionDownloadUrl}
 					srclang="en"
 					label="English"
 					default
-				/>
+				/> -->
 			</media-provider>
 			<media-plyr-layout></media-plyr-layout>
 		</media-player>
