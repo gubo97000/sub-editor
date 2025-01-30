@@ -200,6 +200,7 @@
 		for (const [filePath, file] of filesTree) {
 			const fileName = file.name.split('.').slice(0, -1).join(); //video_name
 			const fileExt = file.name.split('.').slice(-1).join(); //srt
+			if (!videoLibTemp[fileName]) continue;
 			try {
 				// if (file.webkitRelativePath.includes('/output/')) {
 				// console.log(file);
@@ -231,7 +232,7 @@
 					}
 				}
 			} catch (e) {
-				console.error('what', file.name);
+				console.error('what', fileName);
 				console.error(e);
 			}
 		}
