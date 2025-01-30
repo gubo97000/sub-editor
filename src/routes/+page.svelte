@@ -200,35 +200,39 @@
 		for (const [filePath, file] of filesTree) {
 			const fileName = file.name.split('.').slice(0, -1).join(); //video_name
 			const fileExt = file.name.split('.').slice(-1).join(); //srt
-
-			// if (file.webkitRelativePath.includes('/output/')) {
-			// console.log(file);
-			// console.log(filePath);
-			if (filePath.includes('/SubtitlesLukas/')) {
-				// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
-				if (file.type.includes('json')) {
-					videoLibTemp[fileName]['errorFile'] = file;
+			try {
+				// if (file.webkitRelativePath.includes('/output/')) {
+				// console.log(file);
+				// console.log(filePath);
+				if (filePath.includes('/SubtitlesLukas/')) {
+					// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
+					if (file.type.includes('json')) {
+						videoLibTemp[fileName]['errorFile'] = file;
+					}
+					if (file.name.includes('.srt')) {
+						videoLibTemp[fileName]['subFile'] = file;
+					}
 				}
-				if (file.name.includes('.srt')) {
-					videoLibTemp[fileName]['subFile'] = file;
+				if (filePath.includes('/SubtitlesCorrected/')) {
+					if (file.name.includes('.srt')) {
+						videoLibTemp[fileName]['subCorFile'] = file;
+					}
 				}
-			}
-			if (filePath.includes('/SubtitlesCorrected/')) {
-				if (file.name.includes('.srt')) {
-					videoLibTemp[fileName]['subCorFile'] = file;
+				if (filePath.includes('/Translations/')) {
+					// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
+					if (file.name.includes('.srt')) {
+						videoLibTemp[fileName]['subFinFile'] = file;
+					}
 				}
-			}
-			if (filePath.includes('/Translations/')) {
-				// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
-				if (file.name.includes('.srt')) {
-					videoLibTemp[fileName]['subFinFile'] = file;
+				if (filePath.includes('/TranslationsCorrected/')) {
+					// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
+					if (file.name.includes('.srt')) {
+						videoLibTemp[fileName]['subCorFinFile'] = file;
+					}
 				}
-			}
-			if (filePath.includes('/TranslationsCorrected/')) {
-				// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
-				if (file.name.includes('.srt')) {
-					videoLibTemp[fileName]['subCorFinFile'] = file;
-				}
+			} catch (e) {
+				console.error('what', file.name);
+				console.error(e);
 			}
 		}
 
@@ -381,10 +385,10 @@
 					const fixedText = text.replace(/(\d{2}:\d{2}:\d{2},\d{1,3})(\d*)/g, (match, p1) => {
 						return p1;
 					});
-					parseText(fixedText,{
+					parseText(fixedText, {
 						type: 'srt',
 						errors: true,
-						onError: (e) => console.error(e),
+						onError: (e) => console.error(e)
 					}).then((res) => {
 						if (!res) return;
 						const cont = {
