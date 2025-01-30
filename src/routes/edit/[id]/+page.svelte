@@ -4,7 +4,7 @@
 	import CheckTrslZone from '$lib/check-trsl-zone.svelte';
 	import LlmZone from '$lib/llm-zone.svelte';
 	import Ltrsl from '$lib/ltrsl.svelte';
-	import { getGlobState } from '$lib/stores/globalStatus.svelte.js';
+	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { getSubState } from '$lib/stores/subState.svelte';
 	import SubZone from '$lib/sub-zone.svelte';
 	import { parseByteStream, parseResponse, parseText } from 'media-captions';
@@ -19,7 +19,6 @@
 	//svelte get the slug named if
 
 	const { subState } = getSubState();
-	const { globState: gs } = getGlobState();
 
 	const { data } = $props();
 	console.log($state.snapshot(data));
@@ -141,7 +140,8 @@
 	/** @param {number} time */
 	const goToTime = (time) => {
 		if (!player) return;
-		player.currentTime = time;
+		console.log('goToTime', time);
+		player.currentTime = time + 0.01;
 	};
 
 	// //On videoFile change

@@ -1,5 +1,6 @@
 <script>
-	import { getGlobState } from './stores/globalStatus.svelte.js';
+
+	import { globalStatus as gs } from './stores/globalStatus.svelte.js';
 	import { getSubState } from './stores/subState.svelte';
 
 	// /** @type {import('@langchain/core/messages').AIMessageChunk} */
@@ -9,7 +10,6 @@
 	let fetchEndNum = $state(0);
 
 	const { subState } = getSubState();
-	const { globState: gs } = getGlobState();
 	/**
 	 * Handles a mouse event on a link.
 	 *
@@ -90,7 +90,7 @@
 	<!-- {#if buttonText}
 		{buttonText}
 	{/if} -->
-	{#if gs.transcriptionCorrections.length > 0}
+	{#if gs?.transcriptionCorrections?.length > 0}
 		<div style="">
 			<table>
 				<tbody>

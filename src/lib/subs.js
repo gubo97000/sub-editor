@@ -13,18 +13,24 @@ export const convertToSrt = (subtitles) => {
 /**
  * @param { {    text: string,    startTime: number,    endTime: number}[] } subtitles
  */
-//start and end time is in seconda format like 123.345 convert to 00:02:03,345
+//Convert from VTT to Srt format, start and end time are in seconds float (123.345) convert to 00:02:03,345
 export const VTTToSrt = (subtitles) => {
     return subtitles.map((sub, index) => {
         const id = index + 1;
+
+        /**
+         * Converts a duration from seconds to a string formatted as "HH:MM:SS,mmm".
+         *
+         * @param {Number} d - The duration in seconds.
+         * @returns {string} The formatted time string.
+         */
         const secondsToHms = (d) => {
-            d = Number(d);
-            var h = Math.floor(d / 3600);
-            var m = Math.floor(d % 3600 / 60);
-            var s = Math.floor(d % 3600 % 60);
-            var ms = d.toString().split('.')[1];
+            const h = Math.floor(d / 3600);
+            const m = Math.floor(d % 3600 / 60);
+            const s = Math.floor(d % 3600 % 60);
+            let ms = d.toString().split('.')?.[1];
             if (ms) {
-                ms = ms.padEnd(3, '0');
+                ms = ms.length > 3 ? ms.slice(0, 3) : ms.padEnd(3, '0');
             }
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${ms}`;
         }

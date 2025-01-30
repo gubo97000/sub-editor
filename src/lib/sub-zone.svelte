@@ -1,13 +1,12 @@
 <script>
 	import { getSubState } from '$lib/stores/subState.svelte';
 
+	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { VTTToSrt } from '../lib/subs.js';
 	import LtrslSingle from './ltrsl-single.svelte';
-	import { getGlobState } from './stores/globalStatus.svelte.js';
+	import { cueDoubleToTimeString, timeStringToCueDouble } from './utility.js';
 
 	const { subState } = getSubState();
-	const { globState: gs } = getGlobState();
-
 	/**
 	 * @typedef {Object} MyProps
 	 * @property {(time: number) => void} goToTime
@@ -58,17 +57,18 @@
 <table>
 	<thead>
 		<tr>
-			<th>Time</th>
+			<th>Original Time</th>
 			<th>
 				Original
 				<button onclick={() => exportSub(subState.subs['en-US'], 'srt')}>export</button>
 				<button onclick={() => exportSub(subState.subs['en-US'], 'txt')}>txt</button>
 			</th>
-			<th
-				>Finnish
+			<th>
+				Finnish
 				<button onclick={() => exportSub(subState.subs['fi-FI'], 'srt')}>export</button>
-				<button onclick={() => exportSub(subState.subs['fi-FI'], 'srt')}>txt</button>
+				<button onclick={() => exportSub(subState.subs['fi-FI'], 'txt')}>txt</button>
 			</th>
+			<th>Finnish Time</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -80,15 +80,43 @@
 							onclick={() => {
 								goToTime(cue.startTime);
 							}}
+							class={(gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime
+								? 'active'
+								: '') + ' jump'}
 						>
-							<!-- {parseInt(cue.startTime.toString().split('.')[0])/60 + cue.startTime.toString().split('.')[1]} -->
-							{new Date(cue.startTime * 1000)
-								.toISOString()
-								.substr(11, 8)
-								.replace(/^(00:)(?=\d{2}:)/, '') +
-								'.' +
-								cue.startTime.toFixed(3).toString().split('.')[1]}
+							<!-- {Math.round(gs.time)} -->
 						</button>
+						<div
+							class="start"
+							contenteditable="true"
+							onfocusout={(e) => {
+								cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
+							}}
+							bind:textContent={
+								() => {
+									cue.startTime ? cue.startTime : 0;
+									return cueDoubleToTimeString(cue.startTime);
+								},
+								() => {}
+							}
+							aria-label="start time"
+						></div>
+
+						<div
+							class="end"
+							contenteditable="true"
+							onfocusout={(e) => {
+								cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
+							}}
+							bind:textContent={
+								() => {
+									cue.endTime ? cue.endTime : 0;
+									return cueDoubleToTimeString(cue.endTime);
+								},
+								() => {}
+							}
+							aria-label="end time"
+						></div>
 					</td>
 					<td id={`en${cueIndex}`}>
 						{#if !subState.err['en-US']}
@@ -121,20 +149,67 @@
 						{/if}
 					</td>
 					{#if typeof subState.subs['fi-FI']?.content === 'object' && subState.subs['fi-FI']?.content.cues}
-						<td>
-							{#if subState.subs['fi-FI'].content.cues[cueIndex].text.includes('ErrorInChunk')}
-							<LtrslSingle chunkNumber={subState.subs['fi-FI'].content.cues[cueIndex].text.split('-')[1]} />
-							{/if}
-						
-						<div
-						contenteditable="true"
-						bind:textContent={subState.subs['fi-FI'].content.cues[cueIndex].text}
-					>
-						{subState.subs['fi-FI'].content.cues[cueIndex].text}
-					</div>
-						
-							
-						</td>
+						{#each [subState.subs['fi-FI']?.content.cues[cueIndex]] as cue}
+					
+							<td>
+								{#if subState.subs['fi-FI'].content.cues[cueIndex].text.includes('ErrorInChunk')}
+									<LtrslSingle
+										chunkNumber={subState.subs['fi-FI'].content.cues[cueIndex].text.split('-')[1]}
+									/>
+								{/if}
+
+								<div
+									contenteditable="true"
+									bind:textContent={subState.subs['fi-FI'].content.cues[cueIndex].text}
+								>
+									{subState.subs['fi-FI'].content.cues[cueIndex].text}
+								</div>
+							</td>
+							<td class="time">
+								<button
+									onclick={() => {
+										goToTime(cue.startTime);
+									}}
+									class={(gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime
+										? 'active'
+										: '') + ' jump'}
+								>
+									<!-- {Math.round(gs.time)} -->
+								</button>
+								<div
+									class="start"
+									contenteditable="true"
+									onfocusout={(e) => {
+										cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
+									}}
+									bind:textContent={
+										() => {
+											cue.startTime ? cue.startTime : 0;
+											return cueDoubleToTimeString(cue.startTime);
+										},
+										() => {}
+									}
+									aria-label="start time"
+								></div>
+
+								<div
+									class="end"
+									contenteditable="true"
+									onfocusout={(e) => {
+										cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
+									}}
+									bind:textContent={
+										() => {
+											cue.endTime ? cue.endTime : 0;
+											return cueDoubleToTimeString(cue.endTime);
+										},
+										() => {}
+									}
+									aria-label="end time"
+								></div>
+								
+							</td>
+						{/each}
 					{/if}
 				</tr>
 			{/each}
@@ -170,9 +245,52 @@
 			height: 50px;
 		}
 		& .time {
-			display: block;
+			padding: 0;
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			grid-template-rows: 1fr 1fr;
+			grid-template-areas:
+				'time start'
+				'time end';
+
 			border: none;
 			border-radius: 15px;
+			font-size: 0.9em;
+			& button {
+				margin: 0;
+				/* border: none; */
+				/* background-color: transparent; */
+			}
+			& .jump {
+				grid-area: time;
+				border-radius: 500px;
+				align-self: center;
+				justify-self: center;
+				width: 50%;
+				height: 50%;
+				&.active {
+					background-color: rgb(3, 73, 97);
+					width: 80%;
+					height: 80%;
+				}
+			}
+			& .start {
+				grid-area: start;
+				background-color: transparent;
+				border: none;
+				width: 100%;
+				height: 100%;
+				margin: 0 4px;
+			}
+			& .end {
+				color: gray;
+				grid-area: end;
+				background-color: transparent;
+				border: none;
+				width: 100%;
+				height: 100%;
+				margin: 0 4px;
+			}
 		}
 		& .subtitle {
 			display: flex;
