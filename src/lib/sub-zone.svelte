@@ -16,7 +16,7 @@
 	const { goToTime } = $props();
 
 	/**
-	 * @param
+	 * @param {import("vidstack").TextTrackInit} sub
 	 * @param {'txt' | 'srt'} format
 	 */
 	const exportSub = (sub, format) => {

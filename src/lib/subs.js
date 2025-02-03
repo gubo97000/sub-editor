@@ -28,7 +28,7 @@ export const VTTToSrt = (subtitles) => {
             const h = Math.floor(d / 3600);
             const m = Math.floor(d % 3600 / 60);
             const s = Math.floor(d % 3600 % 60);
-            let ms = d.toString().split('.')?.[1];
+            let ms = d.toString().split('.')?.[1] ?? "000";
             if (ms) {
                 ms = ms.length > 3 ? ms.slice(0, 3) : ms.padEnd(3, '0');
             }

@@ -7,19 +7,17 @@
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { getSubState } from '$lib/stores/subState.svelte';
 	import SubZone from '$lib/sub-zone.svelte';
-	import { directoryOpen, fileOpen, fileSave, supported } from 'browser-fs-access';
-	import { parseByteStream, parseResponse, parseText } from 'media-captions';
-	import { onMount } from 'svelte';
-// import { get } from 'svelte/store';
 	import { verifyPermission } from '$lib/utility.js';
+	import { directoryOpen, fileOpen, fileSave, supported } from 'browser-fs-access';
 	import { get, set } from 'idb-keyval';
+	import { parseByteStream, parseText } from 'media-captions';
+	import { onMount } from 'svelte';
 	import { FullscreenButton, Time } from 'vidstack';
 	import 'vidstack/player';
 	import 'vidstack/player/layouts/plyr';
 	import 'vidstack/player/styles/base.css';
 	import 'vidstack/player/styles/plyr/theme.css';
 	import 'vidstack/player/ui';
-	import { convertToSrt, VTTToSrt } from '../lib/subs.js';
 
 	// import type { MediaPlayerElement } from 'vidstack/elements';
 
@@ -27,12 +25,15 @@
 	/** @type {import('vidstack/elements').MediaPlayerElement?} } */
 	let player = $state(null);
 
+	/** @type {{ parsingErrors: { message: string }[] }} */
+	let alerts = $state({ parsingErrors: [] });
+
 	/** @type {FileList | null} */
 	let files = $state(null);
-	/** @type {FileList | null} */
-	let subFiles = $state(null);
-	/** @type {FileList | null} */
-	let subErrorFiles = $state(null);
+	// /** @type {FileList | null} */
+	// let subFiles = $state(null);
+	// /** @type {FileList | null} */
+	// let subErrorFiles = $state(null);
 	/** @type {boolean} */
 	let correctSub = $state(false);
 	/** @type {boolean} */
@@ -100,7 +101,26 @@
 	// 	);
 	// 	return videoLib;
 	// });
+	/**
+	 * Represents a single video entry with associated files.
+	 *
+	 * @typedef {Object} VideoFile
+	 * @property {File} video - The main video file.
+	 * @property {File} subFile - The subtitle file associated with the video (e.g., original
+	 *   subtitles).
+	 * @property {File} errorFile - The file containing parsing or error information.
+	 * @property {File} subCorFile - The corrected subtitle file.
+	 * @property {File} subFinFile - The translated subtitle file.
+	 * @property {File} subCorFinFile - The corrected translated subtitle file.
+	 */
 
+	/**
+	 * Represents the temporary video library used during folder scanning or processing.
+	 *
+	 * @typedef {Object<string, Partial<VideoFile>>} VideoLibrary
+	 */
+
+	/** @type {VideoLibrary} */
 	let videoLib = $state({});
 
 	onMount(() => {
@@ -113,17 +133,12 @@
 		return () => {};
 	});
 
+	/** @type {FileSystemDirectoryHandle | undefined} */
 	let folderHandle = $state();
 	$effect(() => {
+		if (!folderHandle) return;
 		scanFolder(folderHandle);
 		return () => {};
-	});
-	let videoList = $state([]);
-	$effect(() => {
-		(() => {
-			console.log('getting videolist');
-			getVideoFiles(folderHandle).then((res) => (videoList = res));
-		})();
 	});
 
 	const updateSubs = () => {
@@ -153,6 +168,7 @@
 		if (player.paused) {
 			player.currentTime += 0.01;
 			setTimeout(() => {
+				if (!player) return;
 				player.currentTime -= 0.01;
 			}, 1);
 		}
@@ -166,22 +182,25 @@
 		// console.log(blobsInDirectory);
 		console.log('handleGetFolder');
 		if ('showDirectoryPicker' in self) {
+			// @ts-ignore
 			folderHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-			set('folderHandle', folderHandle);
-			if (folderHandle) {
-				console.log('saving folderHandle', folderHandle);
-				localStorage.setItem('folderHandle', JSON.stringify(folderHandle));
-			}
-			// console.log(Promise.all(dirHandle.values()));
-			// const videoFiles = await getVideoFiles(folderHandle);
+			if (!folderHandle) return;
+			console.log('saving folderHandle', folderHandle);
+			set('folderHandle', folderHandle); // Saving on IndexedDb
+			// localStorage.setItem('folderHandle', JSON.stringify(folderHandle));
+
 			scanFolder(folderHandle);
-			// videoLib[file.name.split('.').slice(0, -1).join()] = { video: file };
 
 			console.log(videoLib);
 			return folderHandle;
 		}
 	};
 
+	/**
+	 * Scans the contents of a directory.
+	 *
+	 * @param {FileSystemDirectoryHandle} dirHandle - The handle to the directory to scan.
+	 */
 	const scanFolder = async (dirHandle) => {
 		//Strategy Names: ./video_name.languageAndInformations.srt
 		//Strategy Folder: ./languageAndInformations/video_name.srt
@@ -189,6 +208,8 @@
 		const files = await getFilesList(dirHandle);
 		const filesTree = await getFilesDictFlatTree(dirHandle, '');
 		console.log('tree', filesTree);
+
+		/** @type {VideoLibrary} */
 		const videoLibTemp = {};
 		files.map((file) => {
 			if (file.type.includes('video')) {
@@ -270,20 +291,18 @@
 	const getFilesList = async (dirHandle) => {
 		if (!dirHandle) return [];
 		let promises = [];
-
 		for await (const entry of dirHandle.values()) {
 			if (entry.kind === 'file') {
 				promises.push(
-					entry.getFile().then((file) => {
+					/** @type {FileSystemFileHandle} */ (entry).getFile().then((file) => {
 						return file;
 					})
 				);
 			} else {
-				promises.push(...(await getFilesList(entry)));
+				promises.push(...(await getFilesList(/** @type {FileSystemDirectoryHandle} */ (entry))));
 			}
 		}
 		return await Promise.all(promises);
-		console.log($state.snapshot(videoLib));
 	};
 
 	/**
@@ -295,16 +314,25 @@
 	 */
 	const getFilesDictFlatTree = async (dirHandle, parent) => {
 		if (!dirHandle) return [];
+		/** @type {[string, File][]} */
 		let promises = [];
 
 		for await (const entry of dirHandle.values()) {
 			if (entry.kind === 'file') {
-				promises.push([parent + entry.name, await entry.getFile()]);
+				promises.push([
+					parent + entry.name,
+					await /** @type {FileSystemFileHandle} */ (entry).getFile()
+				]);
 			} else {
-				promises.push(...(await getFilesDictFlatTree(entry, parent + '/' + entry.name + '/')));
+				promises.push(
+					...(await getFilesDictFlatTree(
+						/** @type {FileSystemDirectoryHandle} */ (entry),
+						parent + '/' + entry.name + '/'
+					))
+				);
 			}
 		}
-		return await Promise.all(promises);
+		return promises;
 	};
 
 	$effect(() => {
@@ -332,31 +360,126 @@
 		// console.log(player);
 	});
 
+	/** @param {File} file */
 	const setSubFile = (file) => {
-		parseByteStream(file.stream(), {
-			type: 'srt',
-			errors: true,
-			onError: (e) => console.error(e)
-		}).then((res) => {
-			const cont = {
-				cues: res.cues.map((cue) => {
-					return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
-				})
-			};
-			subState.subs['en-US'] = {
-				id: 'en-US',
-				content: $state.snapshot(cont),
-				label: `English-Loaded`,
-				kind: 'captions',
-				default: true,
-				language: 'en-US',
-				type: 'json'
-			};
+		// parseByteStream(file.stream(), {
+		// 	type: 'srt',
+		// 	errors: true,
+		// 	onError: (e) => console.error(e)
+		// }).then((res) => {
+		// 	const cont = {
+		// 		cues: res.cues.map((cue) => {
+		// 			return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
+		// 		})
+		// 	};
+		// 	subState.subs['en-US'] = {
+		// 		id: 'en-US',
+		// 		content: $state.snapshot(cont),
+		// 		label: `English-Loaded`,
+		// 		kind: 'captions',
+		// 		default: true,
+		// 		language: 'en-US',
+		// 		type: 'json'
+		// 	};
+		// });
+
+		subtitleParser(file, {
+			id: 'en-US',
+			label: `English-Loaded`,
+			kind: 'captions',
+			default: true,
+			language: 'en-US',
+			type: 'json'
 		});
 	};
 
 	/** @param {File} file */
 	const setFinSubFile = (file) => {
+		// parseByteStream(file.stream(), {
+		// 	type: 'srt',
+		// 	strict: true
+		// }).then(
+		// 	(res) => {
+		// 		if (!res) return;
+		// 		const cont = {
+		// 			cues: res.cues.map((cue) => {
+		// 				return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
+		// 			})
+		// 		};
+		// 		subState.subs['fi-FI'] = {
+		// 			id: 'fi-FI',
+		// 			content: $state.snapshot(cont),
+		// 			label: `Finnish-Translated`,
+		// 			kind: 'captions',
+		// 			default: true,
+		// 			language: 'fi-FI',
+		// 			type: 'json'
+		// 		};
+		// 	},
+		// 	(error) => {
+		// 		// Error case, timestamp could be corrupted e.g. 00:03:23,453000000000001
+		// 		// Error case, timestamp could be corrupted e.g. 00:03:23,undefined
+		// 		console.log('trying alternative method');
+		// 		file.text().then((text) => {
+		// 			//grabs correct pattern and throws away the rest of digits
+		// 			const fixedText = text
+		// 				.replace(/(\d{2}:\d{2}:\d{2},\d{1,3})(\d*)/g, (match, p1) => {
+		// 					return p1;
+		// 				})
+		// 				// remove undefined and change it to 000
+		// 				.replace(/(\d{2}:\d{2}:\d{2},)undefined/g, (match, p1) => {
+		// 					return p1 + '000';
+		// 				});
+		// 			parseText(fixedText, {
+		// 				type: 'srt',
+		// 				errors: true,
+		// 				onError: (e) => {
+		// 					console.error(e);
+		// 				}
+		// 			}).then((res) => {
+		// 				alerts['parsingErrors'].push({
+		// 					message:
+		// 						file.name +
+		// 						' finnish subtitles, problems during parsing, please check for missing cues. If everything is ok, Export and override the file (the bug might have been fixed)'
+		// 				});
+		// 				if (!res) return;
+		// 				const cont = {
+		// 					cues: res.cues.map((cue) => {
+		// 						return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
+		// 					})
+		// 				};
+		// 				subState.subs['fi-FI'] = {
+		// 					id: 'fi-FI',
+		// 					content: $state.snapshot(cont),
+		// 					label: `Finnish-Translated`,
+		// 					kind: 'captions',
+		// 					default: true,
+		// 					language: 'fi-FI',
+		// 					type: 'json'
+		// 				};
+		// 			});
+		// 		});
+		// 	}
+		// );
+
+		subtitleParser(file, {
+			id: 'fi-FI',
+			label: `Finnish-Translated`,
+			kind: 'captions',
+			default: true,
+			language: 'fi-FI',
+			type: 'json'
+		});
+	};
+
+	/**
+	 * Add Text Track to the state, needs a template for information and options
+	 *
+	 * @param {File} file
+	 * @param {Omit<import('vidstack').TextTrackInit & { id: string }, 'content'>} template
+	 */
+
+	const subtitleParser = (file, template) => {
 		parseByteStream(file.stream(), {
 			type: 'srt',
 			strict: true
@@ -368,43 +491,52 @@
 						return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
 					})
 				};
-				subState.subs['fi-FI'] = {
-					id: 'fi-FI',
-					content: $state.snapshot(cont),
-					label: `Finnish-Translated`,
-					kind: 'captions',
-					default: true,
-					language: 'fi-FI',
-					type: 'json'
+				subState.subs[template.id] = {
+					...template,
+					content: cont
 				};
 			},
 			(error) => {
-				//If fail erro might be wrong timestamp
+				// Dry run to show errors in console
+				parseByteStream(file.stream(), {
+					type: 'srt',
+					errors: true,
+					onError: (e) => {
+						console.error(e);
+					}
+				});
+				// Error case, timestamp could be corrupted e.g. 00:03:23,453000000000001
+				// Error case, timestamp could be corrupted e.g. 00:03:23,undefined
 				console.log('trying alternative method');
 				file.text().then((text) => {
 					//grabs correct pattern and throws away the rest of digits
-					const fixedText = text.replace(/(\d{2}:\d{2}:\d{2},\d{1,3})(\d*)/g, (match, p1) => {
-						return p1;
-					});
+					const fixedText = text
+						.replace(/(\d{2}:\d{2}:\d{2},\d{1,3})(\d*)/g, (match, p1) => {
+							return p1;
+						})
+						// remove undefined and change it to 000
+						.replace(/(\d{2}:\d{2}:\d{2},)undefined/g, (match, p1) => {
+							return p1 + '000';
+						});
 					parseText(fixedText, {
 						type: 'srt',
 						errors: true,
-						onError: (e) => console.error(e)
+						onError: (e) => {
+							console.error(e);
+						}
 					}).then((res) => {
+						alerts['parsingErrors'].push({
+							message: `${file.name} ${template.label ?? template.id} subtitles, problems during parsing, please check for missing cues. If everything is ok, Export and override the file (the bug might have been fixed)`
+						});
 						if (!res) return;
 						const cont = {
 							cues: res.cues.map((cue) => {
 								return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
 							})
 						};
-						subState.subs['fi-FI'] = {
-							id: 'fi-FI',
-							content: $state.snapshot(cont),
-							label: `Finnish-Translated`,
-							kind: 'captions',
-							default: true,
-							language: 'fi-FI',
-							type: 'json'
+						subState.subs[template.id] = {
+							...template,
+							content: cont
 						};
 					});
 				});
@@ -412,29 +544,30 @@
 		);
 	};
 
+	/** @param {File} file */
 	const setSubErrorFile = (file) => {
 		file.text().then((res) => {
 			subState.err['en-US'] = JSON.parse(res);
 		});
 	};
 
-	//On subFile change
-	$effect(() => {
-		if (!player) return;
-		if (subFiles?.[0]) {
-			setSubFile(subFiles?.[0]);
-		}
-	});
-	//On subErrorFile change
-	$effect(() => {
-		if (!player) return;
-		if (subErrorFiles?.[0]) {
-			subErrorFiles?.[0].text().then((res) => {
-				subState.err['en-US'] = JSON.parse(res);
-				// content = res;
-			});
-		}
-	});
+	// //On subFile change
+	// $effect(() => {
+	// 	if (!player) return;
+	// 	if (subFiles?.[0]) {
+	// 		setSubFile(subFiles?.[0]);
+	// 	}
+	// });
+	// //On subErrorFile change
+	// $effect(() => {
+	// 	if (!player) return;
+	// 	if (subErrorFiles?.[0]) {
+	// 		subErrorFiles?.[0].text().then((res) => {
+	// 			subState.err['en-US'] = JSON.parse(res);
+	// 			// content = res;
+	// 		});
+	// 	}
+	// });
 
 	//On gs.selectedVideo change
 	$effect(() => {
@@ -442,24 +575,26 @@
 		if (!player) return;
 		if (!videoLib[gs.selectedVideo]) return;
 		if (gs.selectedVideo) {
+			const selectedVideo = gs.selectedVideo;
+			alerts.parsingErrors = [];
 			subState.subs = {};
 			subState.err = {};
-			if (videoLib[gs.selectedVideo].video)
-				player.src = { src: videoLib[gs.selectedVideo].video, type: 'video/object' };
+			if (videoLib[selectedVideo].video)
+				player.src = { src: videoLib[selectedVideo].video, type: 'video/object' };
 
-			if (correctSub && videoLib[gs.selectedVideo]?.subCorFile) {
-				console.log(videoLib[gs.selectedVideo]?.subCorFile?.webkitRelativePath);
-				setSubFile(videoLib[gs.selectedVideo].subCorFile);
-			} else if (videoLib[gs.selectedVideo]?.subFile)
-				setSubFile(videoLib[gs.selectedVideo].subFile);
+			if (correctSub && videoLib[selectedVideo]?.subCorFile !== undefined) {
+				console.log(videoLib[selectedVideo]?.subCorFile?.webkitRelativePath);
+				setSubFile(videoLib[selectedVideo].subCorFile);
+			} else if (videoLib[selectedVideo]?.subFile)
+				setSubFile(videoLib[selectedVideo].subFile);
 
-			if (correctTranslateSub && videoLib[gs.selectedVideo]?.subCorFinFile)
-				setFinSubFile(videoLib[gs.selectedVideo].subCorFinFile);
-			else if (videoLib[gs.selectedVideo]?.subFinFile)
-				setFinSubFile(videoLib[gs.selectedVideo].subFinFile);
+			if (correctTranslateSub && videoLib[selectedVideo]?.subCorFinFile)
+				setFinSubFile(videoLib[selectedVideo].subCorFinFile);
+			else if (videoLib[selectedVideo]?.subFinFile)
+				setFinSubFile(videoLib[selectedVideo].subFinFile);
 			if (!correctSub)
-				if (videoLib[gs.selectedVideo]?.errorFile)
-					setSubErrorFile(videoLib[gs.selectedVideo].errorFile);
+				if (videoLib[selectedVideo]?.errorFile)
+					setSubErrorFile(videoLib[selectedVideo].errorFile);
 		}
 	});
 
@@ -497,8 +632,9 @@
 		<div>
 			<button onclick={handleGetFolder}>Open Folder</button>
 			{#if folderHandle}
-				Folder <b>{folderHandle.name}</b> opened. <b>{videoList?.length}</b> videos found.
-				{#await verifyPermission(folderHandle)}
+				Folder <b>{folderHandle.name}</b> opened. <b>{Object.entries(videoLib).length}</b> videos
+				found.
+				{#await verifyPermission(folderHandle, true)}
 					<!-- <div>Permission granted</div> -->
 				{:then value}
 					{#if value}
@@ -546,9 +682,12 @@
 			{#each Object.entries(videoLib).sort((a, b) => {
 				return a[0] > b[0] ? 1 : -1;
 			}) as [key, video]}
-				<option value={key}>{key}</option>
+				<option value={key}>{(video.subFile ? (video.subFinFile ? '' : '🇫🇮') : '🔴') + key}</option>
 			{/each}
 		</select>
+		{#each alerts.parsingErrors as error}
+			<div class="alert">{error.message}</div>
+		{/each}
 		<media-player
 			src="https://aalto.cloud.panopto.eu/Panopto/Podcast/Download/0a9d6bf7-d7b6-4383-9bad-b1d10084d451.mp4?mediaTargetType=videoPodcast"
 			bind:this={player}
@@ -625,5 +764,12 @@
 	media-player {
 		width: 600px;
 		height: 400px;
+	}
+	.alert {
+		background-color: rgba(255, 0, 0, 0.221);
+		color: red;
+		padding: 4px;
+		border-radius: 8px;
+		margin: 4px;
 	}
 </style>

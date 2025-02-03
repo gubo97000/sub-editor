@@ -36,17 +36,16 @@
 
 
 /**
- * A function to create a reactive state that is synchronized with localStorage.
- *
+ * @template T
  * @param {string} key - The key under which the state is stored in localStorage.
- * @param {*} initialValue - The initial value to use if there is no value in localStorage.
- * @returns {*} The reactive state that is synchronized with localStorage.
+ * @param {T} initialValue - The initial value to use if there is no value in localStorage.
+ * @returns {T} The reactive state that is synchronized with localStorage.
  */
 export function localStoreRune(key, initialValue) {
     // Initialize the rune with the default value or value from localStorage
-
-    const state = $state(localStorage.getItem(key) ?
-        JSON.parse(localStorage.getItem(key)) : initialValue
+    const localStoredState = localStorage.getItem(key)
+    const state = $state(localStoredState ?
+        JSON.parse(localStoredState) : initialValue
     );
 
     // Effect to update localStorage whenever the rune's value changes
@@ -63,4 +62,14 @@ export function localStoreRune(key, initialValue) {
     return state;
 }
 
-export const globalStatus = localStoreRune("globalStatus", { time: 0, selectedVideo: "", transcriptionCorrections: [], translationCorrections: [] });
+/**
+ * A store that holds the global status of the application.
+ * 
+ * @constant {Object} globalStatus - The global status store.
+ * @property {number} time - The current time in the application.
+ * @property {string} selectedVideo - The currently selected video.
+ * @property {Array} transcriptionCorrections - List of transcription corrections.
+ * @property {Array} translationCorrections - List of translation corrections.
+ */
+
+export const globalStatus = localStoreRune("globalStatus",  /** @type {GlobalStatus} */{ time: 0, selectedVideo: "", transcriptionCorrections: [], translationCorrections: [] });
