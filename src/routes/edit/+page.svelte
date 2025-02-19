@@ -1,6 +1,7 @@
 <script>
 	import { page } from '$app/stores';
 	import { localStore } from '$lib/localStore.svelte';
+	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
 	import { onMount } from 'svelte';
 
 	let folderIdStored = localStore('folderId', '');
@@ -18,7 +19,7 @@
 			{
 				method: 'GET',
 				headers: {
-					Authorization: 'Bearer ' + localStorage.getItem('access_token')
+					Authorization: 'Bearer ' + pA.accessToken
 				}
 			}
 		);

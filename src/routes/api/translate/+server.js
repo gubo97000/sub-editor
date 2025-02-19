@@ -35,7 +35,7 @@ export const POST = async ({ request }) => {
 
 	if (JSON.parse(response.content).length !== reqData.length) {
 		console.log(JSON.parse(response.content).length, reqData.length, "trying it again")
-		response = await model.invoke(preamble + response.content + " YOU MADE A MISTAKE AND THE LIST WAS NOT THE SAME SIZE AS THE ORIGINAL, DO IT AGAIN, BE MORE VIGILANT, DO NOT TALK, start with '['")
+		response = await model.invoke(preamble + response.content + " YOU MADE A MISTAKE AND THE LIST WAS NOT THE SAME SIZE AS THE ORIGINAL, DO IT AGAIN, BE MORE VIGILANT, DO NOT TALK DO NOT APOLOGIZE, start with '['")
 		console.log(JSON.parse(response.content).length, "new")
 	}
 

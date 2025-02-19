@@ -1,5 +1,5 @@
 // src/routes/api/data/+server.ts
-import { GLHF_API_KEY } from '$env/static/private';
+import { AALTO_API_KEY, GLHF_API_KEY } from '$env/static/private';
 import { ChatOpenAI } from '@langchain/openai';
 export const POST = async ({ request }) => {
     // const model = new ChatOpenAI({
@@ -12,11 +12,15 @@ export const POST = async ({ request }) => {
     // });
     const reqData = JSON.parse(new TextDecoder().decode((await request.body?.getReader().read())?.value));
     const model = new ChatOpenAI({
+        // configuration: {
+        //     baseURL: 'https://glhf.chat/api/openai/v1',
+        //     apiKey: GLHF_API_KEY,
+        //     // baseURL: 'http://10.0.0.1:1234/v1',
+        //     // apiKey: 'lm-studio'
+        // },
         configuration: {
-            baseURL: 'https://glhf.chat/api/openai/v1',
-            apiKey: GLHF_API_KEY,
-            // baseURL: 'http://10.0.0.1:1234/v1',
-            // apiKey: 'lm-studio'
+            baseURL: 'https://ai-gateway.k8s.aalto.fi/v1',
+            apiKey: AALTO_API_KEY
         },
         // model: "hf:Qwen/Qwen2-72B-Instruct",
         model: "hf:meta-llama/Meta-Llama-3.1-405B-Instruct",

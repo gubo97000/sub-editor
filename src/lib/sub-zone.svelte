@@ -7,6 +7,7 @@
 	import { cueDoubleToTimeString, timeStringToCueDouble } from './utility.js';
 
 	const { subState } = getSubState();
+	$inspect(subState);
 	/**
 	 * @typedef {Object} MyProps
 	 * @property {(time: number) => void} goToTime
@@ -16,7 +17,7 @@
 	const { goToTime } = $props();
 
 	/**
-	 * @param {import("vidstack").TextTrackInit} sub
+	 * @param {import('vidstack').TextTrackInit} sub
 	 * @param {'txt' | 'srt'} format
 	 */
 	const exportSub = (sub, format) => {
@@ -51,6 +52,20 @@
 			default:
 				break;
 		}
+	};
+
+	/**
+	 * Swaps the positions of two cues in the list.
+	 *
+	 * @param {number} index - The index of the first cue to swap.
+	 * @param {number} swapIndex - The index of the second cue to swap.
+	 */
+	const swapCue = (index, swapIndex) => {
+		if (swapIndex < 0) return;
+		const temp = subState.subs['fi-FI'].content.cues[index].text;
+		subState.subs['fi-FI'].content.cues[index].text =
+			subState.subs['fi-FI'].content.cues[swapIndex].text;
+		subState.subs['fi-FI'].content.cues[swapIndex].text = temp;
 	};
 </script>
 
@@ -150,12 +165,15 @@
 					</td>
 					{#if typeof subState.subs['fi-FI']?.content === 'object' && subState.subs['fi-FI']?.content.cues}
 						{#each [subState.subs['fi-FI']?.content.cues[cueIndex]] as cue}
-					
 							<td>
 								{#if subState.subs['fi-FI'].content.cues[cueIndex].text.includes('ErrorInChunk')}
 									<LtrslSingle
 										chunkNumber={subState.subs['fi-FI'].content.cues[cueIndex].text.split('-')[1]}
 									/>
+								{/if}
+								{#if !subState.subs['fi-FI'].content.cues[cueIndex].text}
+									<button onclick={() => swapCue(cueIndex, cueIndex - 1)}>swap up</button>
+									<button onclick={() => swapCue(cueIndex, cueIndex + 1)}>swap down</button>
 								{/if}
 
 								<div
@@ -207,7 +225,6 @@
 									}
 									aria-label="end time"
 								></div>
-								
 							</td>
 						{/each}
 					{/if}

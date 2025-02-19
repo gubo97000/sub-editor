@@ -33,15 +33,14 @@
 
 
 
-
-
 /**
  * @template T
  * @param {string} key - The key under which the state is stored in localStorage.
  * @param {T} initialValue - The initial value to use if there is no value in localStorage.
- * @returns {T} The reactive state that is synchronized with localStorage.
+ * @returns {T|undefined} The reactive state that is synchronized with localStorage.
  */
 export function localStoreRune(key, initialValue) {
+    if (typeof localStorage === 'undefined') return;
     // Initialize the rune with the default value or value from localStorage
     const localStoredState = localStorage.getItem(key)
     const state = $state(localStoredState ?
@@ -58,7 +57,48 @@ export function localStoreRune(key, initialValue) {
             console.log("cleaning executed in root effect")
         }
     });
+    return state;
+}
 
+/**
+ * @template T
+ * @param {string} key - The key under which the state is stored in localStorage.
+ * @param {T} initialValue - The initial value to use if there is no value in localStorage.
+ * @returns {T|undefined} The reactive state that is synchronized with localStorage.
+ */
+export function localStoreSyncRune(key, initialValue) {
+    if (typeof localStorage === 'undefined') return;
+    // Initialize the rune with the default value or value from localStorage
+    const localStoredState = localStorage.getItem(key)
+    let state = $state(localStoredState ?
+        JSON.parse(localStoredState) : initialValue
+    );
+
+    // Effect to update localStorage whenever the rune's value changes
+    $effect.root(() => {
+        $effect(() => {
+            // console.log("saving in local storage", state);
+            localStorage.setItem(key, JSON.stringify(state));
+        });
+        return () => {
+            console.log("cleaning executed in root effect")
+        }
+    });
+
+    // Listen for changes to localStorage from other tabs
+    window.addEventListener('storage', (event) => {
+        console.log("👹 storage event", event)
+        if (event.key === key) {
+            if (event.newValue === null) {
+                state = initialValue;
+                console.log("👹 reset state")
+            } else {
+                state = JSON.parse(event.newValue);
+                console.log("👹", state)
+                console.log("👹", event.newValue)
+            }
+        }
+    });
     return state;
 }
 
@@ -73,3 +113,6 @@ export function localStoreRune(key, initialValue) {
  */
 
 export const globalStatus = localStoreRune("globalStatus",  /** @type {GlobalStatus} */{ time: 0, selectedVideo: "", transcriptionCorrections: [], translationCorrections: [] });
+
+
+export const panoptoAuth = localStoreSyncRune("auth", { accessToken: "", refreshToken: "" }); 
