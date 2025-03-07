@@ -11,7 +11,7 @@
 	const clickHandler = async () => {
         fetchEndNum = 0;
         fetchNum = 0;
-		const sub = subState.subs['en-US'];
+		const sub = subState.subs[0];
 
 		if (typeof sub.content === 'object' && sub.content.cues) {
 			const toSend = sub?.content.cues?.map((sub) => {
@@ -65,12 +65,12 @@
 			// 	cue.text = response[i];
 			// });
 
-			// Copy the original subState.subs['en-US'] to subState.subs['fi-FI']
-			subState.subs['fi-FI'] = JSON.parse(JSON.stringify(subState.subs['en-US']));
-            subState.subs['fi-FI']= { ...subState.subs['fi-FI'], id: 'fi-FI', label: 'Finnish-Translated', language: 'fi-FI' };
-			if (!subState.subs['fi-FI']?.content?.cues) return;
+			// Copy the original subState.subs[0] to subState.subs[1]
+			subState.subs[1] = JSON.parse(JSON.stringify(subState.subs[0]));
+            subState.subs[1]= { ...subState.subs[1], id: 'fi-FI', label: 'Finnish-Translated', language: 'fi-FI' };
+			if (!subState.subs[1]?.content?.cues) return;
             response.forEach((text, i) => {
-                subState.subs['fi-FI'].content.cues[i].text = text;
+                subState.subs[1].content.cues[i].text = text;
             });
 			
 		}
@@ -78,7 +78,7 @@
 </script>
 
 <div>
-	<button onclick={clickHandler}>
+	<button onclick={clickHandler} disabled={fetchEndNum !== fetchNum}>
 		{fetchEndNum === fetchNum ? 'Translate!' : `Loading ${fetchEndNum}/${fetchNum}`}
 	</button>
 	{#if response}

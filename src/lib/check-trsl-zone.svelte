@@ -28,8 +28,8 @@
 	const clickHandler = async () => {
 		fetchEndNum = 0;
 		fetchNum = 0;
-		const subEng = subState.subs['en-US'];
-		const subFin = subState.subs['fi-FI'];
+		const subEng = subState.subs[0];
+		const subFin = subState.subs[1];
 		if (!subFin) return;
 		if (typeof subEng.content === 'object' && subEng.content.cues) {
 			const toSend = subEng?.content.cues?.map((sub, index) => {
@@ -84,7 +84,7 @@
 </script>
 
 <div>
-	<button onclick={clickHandler}>
+	<button onclick={clickHandler} disabled={fetchEndNum !== fetchNum}>
 		{fetchEndNum === fetchNum ? 'Get Hints!' : `Loading ${fetchEndNum}/${fetchNum}`}
 	</button>
 	<!-- {#if buttonText}

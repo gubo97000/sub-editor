@@ -64,10 +64,10 @@
 	 */
 	const swapCue = (index, swapIndex) => {
 		if (swapIndex < 0) return;
-		const temp = subState.subs['fi-FI'].content.cues[index].text;
-		subState.subs['fi-FI'].content.cues[index].text =
-			subState.subs['fi-FI'].content.cues[swapIndex].text;
-		subState.subs['fi-FI'].content.cues[swapIndex].text = temp;
+		const temp = subState.subs[1].content.cues[index].text;
+		subState.subs[1].content.cues[index].text =
+			subState.subs[1].content.cues[swapIndex].text;
+		subState.subs[1].content.cues[swapIndex].text = temp;
 	};
 </script>
 

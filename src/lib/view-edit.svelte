@@ -11,6 +11,7 @@
 	import 'vidstack/player/styles/base.css';
 	import 'vidstack/player/styles/plyr/theme.css';
 	import 'vidstack/player/ui';
+	import AiHelperZone from './ai-helper-zone.svelte';
 	import TranscribeButton from './transcribeButton.svelte';
 
 	// import type { MediaPlayerElement } from 'vidstack/elements';
@@ -243,6 +244,14 @@
 
 		<div style="display:flex">
 			<button
+				class={`tab-button ${showTab === 'customHelper' && 'activeTab'}`}
+				onclick={() => {
+					showTab = 'customHelper';
+				}}
+			>
+				AI Helper
+			</button>
+			<button
 				class={`tab-button ${showTab === 'transcriptionHelper' && 'activeTab'}`}
 				onclick={() => {
 					showTab = 'transcriptionHelper';
@@ -250,7 +259,7 @@
 			>
 				Transcription Helper
 			</button>
-			{#if subState.subs['fi-FI']}
+			{#if subState.subs[1]}
 				<button
 					class={`tab-button ${showTab === 'translationHelper' && 'activeTab'}`}
 					onclick={() => {
@@ -265,6 +274,9 @@
 		<div class="activeTab" style="flex-grow: 1;">
 			{#if showTab === 'transcriptionHelper'}
 				<LlmZone />
+			{/if}
+			{#if showTab === 'customHelper'}
+				<AiHelperZone />
 			{/if}
 			{#if showTab === 'translationHelper'}{/if}
 			{#if showTab === 'translationHelper'}

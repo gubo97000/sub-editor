@@ -2,9 +2,6 @@
 	import { PUBLIC_AALTO_SPEECH2TEXT_API_KEY } from '$env/static/public';
 	import { FFmpeg } from '@ffmpeg/ffmpeg';
 	import { fetchFile, toBlobURL } from '@ffmpeg/util';
-	import { get } from 'idb-keyval';
-	import JSZip from 'jszip';
-	import { parse } from 'svelte/compiler';
 
 	/**
 	 * Props for the TranscribeButton component.
@@ -15,10 +12,6 @@
 
 	/** @type {Props} */
 	const { videoFile = '' } = $props();
-
-	let transcriptionId = $state('');
-	let status = $state({ status: '', details: '' });
-	let jobFile = $state(null);
 
 	const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
 	// /api/v1/proxy/Podcast/Download/${id}.mp4?mediaTargetType=videoPodcast
@@ -55,38 +48,12 @@
 			},
 			body: formData
 		});
-		transcriptionId = (await res.text()).replaceAll('"', '');
-
-		const intervalId = setInterval(async () => {
-			const res = await fetch(
-				`https://transcript.k8s.aalto.fi/transcription/status/${transcriptionId}`,
-				{
-					headers: {
-						Authorization: 'Bearer ' + PUBLIC_AALTO_SPEECH2TEXT_API_KEY
-					}
-				}
-			);
-			status = await res.json();
-			if (status.status === 'finished') {
-				clearInterval(intervalId);
-				let files = await getTranscription();
-				parseFile(files[0].data);
-			}
-		}, 3000);
+		console.log(res);
 	}
 
-	const handleFileLoad = async () => {
-		console.log('file loaded');
-		console.log(jobFile);
-	};
-	const parseFile = async (file) => {};
 	const handleClick = () => {
 		console.log('Transcribe!');
-		// SOME TETS FUNCTIONS FOR CORS PROBLEM WITH PANOPTO  CORS
-		// fetch("https://transcript.k8s.aalto.fi/transcription/jobs_in_processing",{headers: {
-		// 		Authorization: 'Bearer ' + PUBLIC_AALTO_SPEECH2TEXT_API_KEY
-		// 	},})
-		// fetch("https://download.cdn.cloud.panopto.eu/sessions/053bf10d-db8c-48ff-af40-b28500b984a0/d0351136-6238-455b-bb59-b28500b984a6-6762a3db-fe02-48c4-9661-b28901059476.mp4?response-content-disposition=attachment;filename=%22Course%20Information%20-%202025%20-%20English_default.mp4%22")
+        fetch("https://download.cdn.cloud.panopto.eu/sessions/053bf10d-db8c-48ff-af40-b28500b984a0/d0351136-6238-455b-bb59-b28500b984a6-6762a3db-fe02-48c4-9661-b28901059476.mp4?response-content-disposition=attachment;filename=%22Course%20Information%20-%202025%20-%20English_default.mp4%22")
 		transcode(videoFile);
 	};
 	const handleLoad = async () => {
@@ -105,46 +72,8 @@
 		console.log('done');
 		return;
 	};
-	const getTranscription = async () => {
-		const res = await fetch(
-			`https://transcript.k8s.aalto.fi/transcription/download/${transcriptionId}`,
-			{
-				headers: {
-					Authorization: 'Bearer ' + PUBLIC_AALTO_SPEECH2TEXT_API_KEY
-				}
-			}
-		);
-		let zipBlob = await res.blob();
-		// Load the ZIP file using JSZip
-		try {
-			const zip = await JSZip.loadAsync(zipBlob);
-			// Extract files from the ZIP
-			const extractedFiles = [];
-			for (const fileName of Object.keys(zip.files)) {
-				const fileData = await zip.files[fileName].async('blob'); // Extract as Blob
-				extractedFiles.push({ name: fileName, data: fileData });
-			}
-
-			console.log(extractedFiles); // Array of extracted files with names and data
-			return extractedFiles;
-		} catch (error) {
-			console.error('Error extracting ZIP file:', error);
-		}
-	};
 </script>
 
 <!-- <button onclick={handleLoad}>Load</button> -->
 
 <button onclick={handleClick}> Transcribe! </button>
-
-{status.status}
-{transcriptionId}
-<p>
-	or drop here the file you obtained from <a
-		href="https://transcript.k8s.aalto.fi/"
-		target="_blank"
-	>
-		https://transcript.k8s.aalto.fi/
-	</a>
-</p>
-<input type="file" bind:files={jobFile} /> <button onclick={handleFileLoad}>Load File</button>

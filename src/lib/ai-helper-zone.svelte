@@ -1,6 +1,6 @@
 <script>
-
-	import { globalStatus as gs } from './stores/globalStatus.svelte.js';
+	import { custom } from 'zod';
+	import { globalStatus as gs, localStoreRune } from './stores/globalStatus.svelte.js';
 	import { getSubState } from './stores/subState.svelte';
 
 	// /** @type {import('@langchain/core/messages').AIMessageChunk} */
@@ -8,6 +8,15 @@
 	let buttonText = $state('');
 	let fetchNum = $state(0);
 	let fetchEndNum = $state(0);
+
+
+	let customOptions = localStoreRune('customOptions', {
+		endpoint: '',
+		model: '',
+		apiKey: '',
+		commands: '',
+		chunckSize: 10
+	});
 
 	const { subState } = getSubState();
 	/**
@@ -48,9 +57,17 @@
 			const promises = [...chunks].map((chunk) => {
 				console.log(chunk);
 				fetchNum += 1;
-				return fetch('/api/llm', {
+				return fetch('/api/custom-llm', {
 					method: 'POST',
-					body: JSON.stringify(chunk)
+					body: JSON.stringify({
+						options: {
+							apiUrl: customOptions?.endpoint,
+							model: customOptions?.model, 
+							apiKey: customOptions?.apiKey, 
+							commands: customOptions?.commands
+						},
+						data: chunk
+					})
 				}).then((res) => {
 					fetchEndNum += 1;
 					return res.json();
@@ -84,6 +101,19 @@
 </script>
 
 <div>
+	<div>
+		<p>Only works on the Original Column!</p>
+		Enter your AI endpoint (OpenAi API), if empty default llm will be used:
+		<input type="text" bind:value={customOptions.endpoint} />
+		<p>Your model name</p>
+		<input type="text" bind:value={customOptions.model} />
+	</div>
+	<div>
+		Enter your API key:
+		<input type="text" bind:value={customOptions.apiKey} />
+	</div>
+	<p>Enter your instructions:</p>
+	<textarea bind:value={customOptions.commands} ></textarea>
 	<button onclick={clickHandler} disabled={fetchEndNum !== fetchNum}
 		>{fetchEndNum === fetchNum ? 'Get Hints!' : `Loading ${fetchEndNum}/${fetchNum}`}</button
 	>
@@ -134,7 +164,7 @@
 		background-color: var(--color);
 		/* border-radius: 4px; */
 		/* border:1px solid black;  */
-		padding:1px 4px;
+		padding: 1px 4px;
 		-webkit-box-decoration-break: clone;
 		/* box-shadow:
 			-0.2em -0.1em 0 var(--color),

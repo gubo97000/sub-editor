@@ -379,7 +379,7 @@
 			>
 				Transcription Helper
 			</button>
-			{#if subState.subs['fi-FI']}
+			{#if subState.subs[1]}
 				<button
 					class={`tab-button ${showTab === 'translationHelper' && 'activeTab'}`}
 					onclick={() => {

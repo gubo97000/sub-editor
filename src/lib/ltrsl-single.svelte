@@ -11,7 +11,7 @@
 
 	const clickHandler = async () => {
 		fetching = true;
-		const sub = subState.subs['en-US'];
+		const sub = subState.subs[0];
 
 		if (typeof sub.content === 'object' && sub.content.cues) {
 			const toSend = sub?.content.cues?.map((sub) => {
@@ -60,28 +60,28 @@
 			// 	cue.text = response[i];
 			// });
 
-			// Copy the original subState.subs['en-US'] to subState.subs['fi-FI']
-			if (!subState.subs['fi-FI']) {
-				subState.subs['fi-FI'] = JSON.parse(JSON.stringify(subState.subs['en-US'])); //deep copy
+			// Copy the original subState.subs[0] to subState.subs[1]
+			if (!subState.subs[1]) {
+				subState.subs[1] = JSON.parse(JSON.stringify(subState.subs[0])); //deep copy
 			}
-			subState.subs['fi-FI'] = {
-				...subState.subs['fi-FI'],
+			subState.subs[1] = {
+				...subState.subs[1],
 				id: 'fi-FI',
 				label: 'Finnish-Translated',
 				language: 'fi-FI'
 			};
-			let copy = JSON.parse(JSON.stringify(subState.subs['fi-FI']));
-			// if (!subState.subs['fi-FI']?.content?.cues) return;
+			let copy = JSON.parse(JSON.stringify(subState.subs[1]));
+			// if (!subState.subs[1]?.content?.cues) return;
 			for (const [i, text] of response.entries()) {
 				const cuePosition = i + chunkNumber * chunkSize; //Insert cue in correct position
 				copy.content.cues[cuePosition].text = text;
 			}
-			subState.subs['fi-FI'] = copy;
+			subState.subs[1] = copy;
 			// response.forEach((text, i) => {
 			// 	const cuePosition = i + (chunkNumber * chunkSize);
 			// 	console.log(i,cuePosition, chunkNumber * chunkSize, (chunkNumber + 1) * chunkSize);
 			// 	// if (i < chunkNumber * chunkSize || i >= (chunkNumber + 1) * chunkSize) return;
-			// 	subState.subs['fi-FI'].content.cues[cuePosition].text = text;
+			// 	subState.subs[1].content.cues[cuePosition].text = text;
 			// });
 		}
 	};
