@@ -20,7 +20,7 @@
 			{
 				method: 'GET',
 				headers: {
-					Authorization: 'Bearer ' + pA.accessToken
+					Authorization: 'Bearer ' + pA?.accessToken
 				}
 			}
 		);
@@ -68,3 +68,7 @@
 		{/if}
 	{/each}
 </div>
+
+<style>
+	
+</style>

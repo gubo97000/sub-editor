@@ -26,7 +26,3 @@ export const reroute = async ({ url }) => {
 }
 
 
-// export const handleError = async ({ error, event, status, message }) => {
-
-// 	console.log("error", error, status, message, event)
-// };

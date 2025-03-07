@@ -1,26 +1,17 @@
 <script>
-	import ApiTest from '$lib/api-test.svelte';
-	import AuthButton from '$lib/auth.svelte';
 	import CheckTrslZone from '$lib/check-trsl-zone.svelte';
 	import LlmZone from '$lib/llm-zone.svelte';
 	import Ltrsl from '$lib/ltrsl.svelte';
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { getSubState } from '$lib/stores/subState.svelte';
 	import SubZone from '$lib/sub-zone.svelte';
-	import { verifyPermission } from '$lib/utility.js';
-	import { directoryOpen, fileOpen, fileSave, supported } from 'browser-fs-access';
-	import { get, set } from 'idb-keyval';
-	import { ChatConversationalAgentOutputParser } from 'langchain/agents';
-	import { load } from 'langchain/load';
-	import { parseByteStream, parseText } from 'media-captions';
-	import { getContext, hasContext, onMount } from 'svelte';
-	import { parse } from 'svelte/compiler';
-	import { FullscreenButton, Time } from 'vidstack';
+	import { getContext, onMount, setContext } from 'svelte';
 	import 'vidstack/player';
 	import 'vidstack/player/layouts/plyr';
 	import 'vidstack/player/styles/base.css';
 	import 'vidstack/player/styles/plyr/theme.css';
 	import 'vidstack/player/ui';
+	import TranscribeButton from './transcribeButton.svelte';
 
 	// import type { MediaPlayerElement } from 'vidstack/elements';
 
@@ -30,13 +21,15 @@
 
 	/** @type {{ parsingErrors: { message: string }[] }} */
 	let alerts = $state({ parsingErrors: [] });
+	setContext('alerts', alerts);
+	$inspect(alerts, '🚨 alerts');
 
 	/** @type {FileList | null} */
 	let files = $state(null);
-	/** @type {boolean} */
-	let correctSub = $state(false);
-	/** @type {boolean} */
-	let correctTranslateSub = $state(false);
+	// /** @type {boolean} */
+	// let correctSub = $state(false);
+	// /** @type {boolean} */
+	// let correctTranslateSub = $state(false);
 	/** @type {'transcriptionHelper' | 'translationHelper'} */
 	let showTab = $state('transcriptionHelper');
 
@@ -59,41 +52,17 @@
 	 * @typedef {Object<string, Partial<VideoFile>>} VideoLibrary
 	 */
 
-	/** @type {VideoLibrary} */
-	// let videoLib = $state({});
-
-	// const { data } = getEditContext();
-	// const { data } = $props();
-	// console.log($state.snapshot(data));
-	// console.log(data);
-	// if (data?.videoLib) {
-	// 	videoLib = data?.videoLib;
-	// }
-	if (hasContext('videoLib')) {
-	}
+	/** @type {{ videoLib: VideoLibrary }} */
 	const context = getContext('videoLib');
 	// videoLib = context?.videolib?.videoLib ?? {};
-	console.log('context', $state.snapshot(context.videoLib));
-	console.log('videoLib', context?.videoLib);
-	// const videoLib = (()=>context.videoLib)();
+	// console.log('context', $state.snapshot(context.videoLib));
+	// console.log('videoLib', context?.videoLib);
+
 	$effect(() => {
-		console.log('context', context);
-		console.log('videoLib', context.videoLib);
+		// console.log('context', context);
+		// console.log('videoLib', context.videoLib);
 		// console.log('videoLib uncontext', videoLib);
 	});
-
-	// $effect(() => {
-	// 	if (context?.videolib) {
-	// 		console.log('context', context);
-	// 		videoLib = $state.snapshot(context.videolib);
-	// 	}
-	// });
-
-	// $effect(() => {
-	// 	if (Object.keys(videoLib).length === 0) {
-	// 		console.log('no videoLib');
-	// 		return;
-	// 	}
 
 	// });
 	$inspect(context);
@@ -126,7 +95,7 @@
 			})?.id ?? 'en-US';
 		player.textTracks.clear();
 		for (const [_, sub] of Object.entries(subState.subs)) {
-			console.log($state.snapshot(sub));
+			// console.log($state.snapshot(sub));
 			player.textTracks.add({ ...sub, default: sub.id === trackShowing });
 		}
 
@@ -165,97 +134,6 @@
 	});
 
 	/** @param {File} file */
-	const setSubFile = (file) => {
-		subtitleParser(file).then((res) => {
-			if (res) {
-				subState.subs['en-US'] = {
-					content: res,
-					id: 'en-US',
-					label: `English-Loaded`,
-					kind: 'captions',
-					default: true
-				};
-			}
-		});
-	};
-
-	/** @param {File} file */
-	const setFinSubFile = (file) => {
-		subtitleParser(file).then((res) => {
-			if (res) {
-				subState.subs['fi-FI'] = {
-					content: res,
-					id: 'fi-FI',
-					label: `Finnish-Loaded`,
-					kind: 'captions',
-					default: false
-				};
-			}
-		});
-	};
-
-	/**
-	 * Add Text Track to the state, needs a template for information and options
-	 *
-	 * @param {File | string} file
-	 */
-
-	const subtitleParser = async (file) => {
-		const isString = typeof file === 'string';
-		try {
-			const res = await (isString
-				? parseText(file, { type: 'srt', strict: true })
-				: parseByteStream(file.stream(), { type: 'srt', errors: true, strict: true }));
-			if (!res) return;
-			return {
-				cues: res.cues.map((cue) => ({
-					text: cue.text,
-					startTime: cue.startTime,
-					endTime: cue.endTime
-				}))
-			};
-		} catch (error) {
-			try {
-				await (isString
-					? parseText(file, {
-							type: 'srt',
-							errors: true,
-							onError: (e) => console.error(e)
-						})
-					: parseByteStream(file.stream(), {
-							type: 'srt',
-							errors: true,
-							onError: (e) => console.error(e)
-						}));
-
-				console.log('trying alternative method');
-				const textContent = isString ? file : await file.text();
-				const fixedText = textContent
-					.replace(/(\d{2}:\d{2}:\d{2},\d{1,3})(\d*)/g, (_, p1) => p1)
-					.replace(/(\d{2}:\d{2}:\d{2},)undefined/g, (_, p1) => p1 + '000');
-				const resAlt = await parseText(fixedText, {
-					type: 'srt',
-					errors: true,
-					onError: (e) => console.error(e)
-				});
-				if (!resAlt) return;
-				alerts.parsingErrors.push({
-					message: `${isString ? '' : file.name} - Problems during parsing, please check for missing cues. If everything is ok, Export and override the file (the bug might have been fixed)`
-				});
-				return {
-					cues: resAlt.cues.map((cue) => ({
-						text: cue.text,
-						startTime: cue.startTime,
-						endTime: cue.endTime
-					}))
-				};
-			} catch (e) {
-				console.error(e);
-			}
-		}
-	};
-
-	/** @param {File} file */
 	const setSubErrorFile = (file) => {
 		file.text().then((res) => {
 			subState.err['en-US'] = JSON.parse(res);
@@ -274,30 +152,34 @@
 			subState.err = {};
 			if (context.videoLib[selectedVideo].video) {
 				u.loadVideoEntry(gs.selectedVideo).then((url) => {
+					subState.video = url;
 					player.src = { src: url };
 				}); //🔴
 				// player.src = { src: videoLib[selectedVideo].video, type: 'video/object' };
 			}
 
-			u.loadSubtitles(selectedVideo).then((subs) => {
-				console.log(subs);
-				subs.map((subtitle) => {
-					subtitleParser(subtitle.text).then((content) => {
-						console.log(content);
-						if (content) {
-							subState.subs[subtitle.id] = {
-								content: content,
-								id: subtitle.id,
-								label: subtitle.language,
-								kind: 'captions',
-								default: true,
-								language: subtitle.id,
-								type: 'json'
-							};
-						}
-					});
-				});
-			});
+			// u.loadSubtitles(selectedVideo).then((subs) => {
+			// 	console.log(subs);
+			// 	subs.map((subtitle) => {
+			// 		subtitleParser(subtitle.text).then((content) => {
+			// 			console.log(content);
+			// 			if (content) {
+			// 				alerts.parsingErrors.push(content?.alerts);
+			// 				subState.subs[subtitle.id] = {
+			// 					content: content,
+			// 					id: subtitle.id,
+			// 					label: subtitle.language,
+			// 					kind: 'captions',
+			// 					default: true,
+			// 					language: subtitle.id,
+			// 					type: 'json'
+			// 				};
+			// 			}
+			// 		});
+			// 	});
+			// });
+
+			// u.loadAllSubtitles(selectedVideo)
 
 			// if (correctSub && context.videoLib[selectedVideo]?.subCorFile !== undefined) {
 			// 	console.log(context.videoLib[selectedVideo]?.subCorFile?.webkitRelativePath);
@@ -405,7 +287,7 @@
 		/* width: 300px; */
 	}
 	.active {
-		background-color: lightblue;
+		background-color: var(--primary-color-active);
 	}
 
 	media-player {

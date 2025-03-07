@@ -17,6 +17,10 @@
 		return `/api/v1/proxy/Podcast/Download/${id}.mp4?mediaTargetType=videoPodcast`;
 	};
 
+	const getVideoEntrySync = (/** @type {string} */ id) => {
+		return `/api/v1/proxy/Podcast/Download/${id}.mp4?mediaTargetType=videoPodcast`;
+	};
+
 	const loadSubtitles = async (/** @type {string} */ id) => {
 		// https://aalto.cloud.panopto.eu/Panopto/Pages/Viewer/DeliveryInfo.aspx
 		// POST with this form data: deliveryId=0a9d6bf7-d7b6-4383-9bad-b1d10084d451&isLiveNotes=false&refreshAuthCookie=false&isActiveBroadcast=false&isEditing=false&isKollectiveAgentInstalled=false&isEmbed=true&responseType=json
@@ -64,7 +68,8 @@
 		setContext('videoLib', {videoLib});
 		setContext('utils', {
 			loadVideoEntry,
-			loadSubtitles
+			loadSubtitles,
+			getVideoEntrySync
 		});
 	}
 </script>

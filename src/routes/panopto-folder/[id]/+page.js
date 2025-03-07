@@ -36,7 +36,7 @@ export const load = async ({ params }) => {
                 // url: `${panoptoBaseUrl}/Panopto/Pages/Viewer.aspx?id=${video.Id}`
             }
         }
-    });
+    }); 
     console.log(folder);
     return { folder, videoLib };
 }

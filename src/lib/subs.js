@@ -1,3 +1,5 @@
+import { parseByteStream, parseText } from "media-captions";
+
 /**
  * @param { {startTime: string, endTime: string, speaker: string, text: string}[] } subtitles
  */
@@ -117,3 +119,64 @@ export const PANOPTO_LANGUAGE_CODES_TO_ID = {
 
 
 
+	/**
+	 * Add Text Track to the state, needs a template for information and options
+	 *
+	 * @param {File | string} file
+	 */
+
+	export const subtitleParser = async (file) => {
+		const isString = typeof file === 'string';
+		try {
+			const res = await (isString
+				? parseText(file, { type: 'srt', strict: true })
+				: parseByteStream(file.stream(), { type: 'srt', errors: true, strict: true }));
+			if (!res) return;
+			return {
+				cues: res.cues.map((cue) => ({
+					text: cue.text,
+					startTime: cue.startTime,
+					endTime: cue.endTime
+				}))
+			};
+		} catch (error) {
+			try {
+				await (isString
+					? parseText(file, {
+							type: 'srt',
+							errors: true,
+							onError: (e) => console.error(e)
+						})
+					: parseByteStream(file.stream(), {
+							type: 'srt',
+							errors: true,
+							onError: (e) => console.error(e)
+						}));
+
+				console.log('trying alternative method');
+				const textContent = isString ? file : await file.text();
+				const fixedText = textContent
+					.replace(/(\d{2}:\d{2}:\d{2},\d{1,3})(\d*)/g, (_, p1) => p1)
+					.replace(/(\d{2}:\d{2}:\d{2},)undefined/g, (_, p1) => p1 + '000');
+				const resAlt = await parseText(fixedText, {
+					type: 'srt',
+					errors: true,
+					onError: (e) => console.error(e)
+				});
+				if (!resAlt) return;
+				
+				return {
+					cues: resAlt.cues.map((cue) => ({
+						text: cue.text,
+						startTime: cue.startTime,
+						endTime: cue.endTime
+					})),
+                    alerts: [{
+                        message: `${isString ? '' : file.name} - Problems during parsing, please check for missing cues. If everything is ok, Export and override the file (the bug might have been fixed)`
+                    }]
+				};
+			} catch (e) {
+				console.error(e);
+			}
+		}
+	};

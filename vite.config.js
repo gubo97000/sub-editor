@@ -16,5 +16,8 @@ export default defineConfig({
 	server: {
 		https: httpsConfig,
 		proxy: {}
-	}
+	},
+	optimizeDeps: {
+		exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util']
+	},
 });

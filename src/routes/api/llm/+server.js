@@ -31,7 +31,8 @@ export const POST = async ({ request }) => {
     }
 
     const model = new ChatOpenAI({
-        ...AaltoConfig,
+        // ...AaltoConfig,
+        ...GlhfConfig,
         
         temperature: 0.8,
         verbose: true
@@ -45,7 +46,7 @@ export const POST = async ({ request }) => {
     INSTRUCTIONS:
     - is very possible that no error or suggestions are found, SKIP the subtitle 
     - You only need to check for mistranscriptions, mistakes, capitalization based on the context
-    - checking the prase before and after helps understanding the context
+    - checking the phrase before and after helps understanding the context
     - do NOT talk, ONLY output an JSON COMPLIANT array of this elements: {"index": number, "errorString":string, "correctionString":string, "note"?:string}
     - if no corrections are found output: "[]"
     - start with '['

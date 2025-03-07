@@ -11,9 +11,17 @@
 
 <style>
 	:global(:root) {
-		--background-color: var(rgba(43, 213, 216, 0.329));
+		/* --primary-color: rgba(21, 141, 43, 0.472);
+    --primary-color-hover: rgba(21, 141, 43, 0.8);
+    --primary-color-active: rgba(68, 233, 98, 0.48);
+    --secondary-color: rgba(36, 158, 58, 0.279);
+    --secondary-color-border: rgba(7, 55, 31, 0.297);
+    --background-color: rgba(43, 216, 75, 0.096); */
+		--primary-color: rgba(69, 165, 255, 0.568);
+		--primary-color-hover: rgba(69, 165, 255, 0.8);
+		--primary-color-active: rgba(69, 165, 255, 0.48);
+		--background-color: rgba(0, 221, 255, 0.108);
+
 	}
-	:root {
-		--background-color: var(rgba(43, 213, 216, 0.329));
-	}
+
 </style>

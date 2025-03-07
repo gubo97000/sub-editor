@@ -1,17 +1,16 @@
 button{
     border-radius: 8px;
-    /* border: 1px solid; */
     border: none;
     padding: 4px 12px;
     margin: 4px;
-    background-color: rgba(21, 141, 43, 0.472);
+    background-color: var(--primary-color);
     cursor: pointer;
 
     &:hover{
-        background-color: rgba(21, 141, 43, 0.8);
+        background-color: var(--primary-color-hover);
     }
     &:active{
-        background-color: rgba(68, 233, 98, 0.48);
+        background-color: var(--primary-color-active);
     }
     &:focus{
         outline: none;
@@ -23,7 +22,6 @@ button{
     --primary-color-hover: rgba(21, 141, 43, 0.8);
     --primary-color-active: rgba(68, 233, 98, 0.48);
     --secondary-color: rgba(36, 158, 58, 0.279);
-    --secondary-color-border: rgba(7, 55, 31, 0.297);
     --background-color: rgba(43, 216, 75, 0.096);
 }
 
@@ -33,7 +31,7 @@ body{
 
 .activeTab {
     height: 100%;
-    background-color: rgba(36, 158, 58, 0.279);
+    background-color: var(--background-color);
     overflow: auto;
     border-radius: 12px;
     padding: 8px;

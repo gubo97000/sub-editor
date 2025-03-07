@@ -4,6 +4,8 @@
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { VTTToSrt } from '../lib/subs.js';
 	import LtrslSingle from './ltrsl-single.svelte';
+	import SubtitleSelect from './subtitle-select.svelte';
+	import TranscribeButton from './transcribeButton.svelte';
 	import { cueDoubleToTimeString, timeStringToCueDouble } from './utility.js';
 
 	const { subState } = getSubState();
@@ -75,161 +77,179 @@
 			<th>Original Time</th>
 			<th>
 				Original
-				<button onclick={() => exportSub(subState.subs['en-US'], 'srt')}>export</button>
-				<button onclick={() => exportSub(subState.subs['en-US'], 'txt')}>txt</button>
+				<SubtitleSelect autoLoad={['en-US', 'en', 'auto']} index={0} />
+				<button onclick={() => exportSub(subState.subs[0], 'srt')}>export</button>
+				<button onclick={() => exportSub(subState.subs[0], 'txt')}>txt</button>
 			</th>
 			<th>
 				Finnish
-				<button onclick={() => exportSub(subState.subs['fi-FI'], 'srt')}>export</button>
-				<button onclick={() => exportSub(subState.subs['fi-FI'], 'txt')}>txt</button>
+				<SubtitleSelect autoLoad={['fi-FI', 'fi', 'auto']} index={1} />
+				<button onclick={() => exportSub(subState.subs[1], 'srt')}>export</button>
+				<button onclick={() => exportSub(subState.subs[1], 'txt')}>txt</button>
 			</th>
 			<th>Finnish Time</th>
 		</tr>
 	</thead>
 	<tbody>
-		{#if typeof subState.subs['en-US']?.content === 'object' && subState.subs['en-US']?.content.cues}
-			{#each subState.subs['en-US']?.content.cues as cue, cueIndex}
-				<tr class={gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime ? 'active' : ''}>
-					<td class="time">
-						<button
-							onclick={() => {
-								goToTime(cue.startTime);
-							}}
-							class={(gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime
-								? 'active'
-								: '') + ' jump'}
-						>
-							<!-- {Math.round(gs.time)} -->
-						</button>
-						<div
-							class="start"
-							contenteditable="true"
-							onfocusout={(e) => {
-								cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
-							}}
-							bind:textContent={
-								() => {
-									cue.startTime ? cue.startTime : 0;
-									return cueDoubleToTimeString(cue.startTime);
-								},
-								() => {}
-							}
-							aria-label="start time"
-						></div>
-
-						<div
-							class="end"
-							contenteditable="true"
-							onfocusout={(e) => {
-								cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
-							}}
-							bind:textContent={
-								() => {
-									cue.endTime ? cue.endTime : 0;
-									return cueDoubleToTimeString(cue.endTime);
-								},
-								() => {}
-							}
-							aria-label="end time"
-						></div>
-					</td>
-					<td id={`en${cueIndex}`}>
-						{#if !subState.err['en-US']}
-							<div
-								class="subtitle"
-								contenteditable="true"
-								bind:textContent={cue.text}
-								style={subState.err['en-US'] ? 'display:none' : ''}
+		{#if typeof subState.subs[0]?.content === 'object' && subState.subs[0]?.content.cues}
+			{#if subState.subs[0].id === '_transcribe'}
+				<tr>
+					<td></td>
+					<td> <TranscribeButton videoFile={subState.video} /> </td></tr
+				>
+			{:else}
+				{#each subState.subs[0]?.content.cues as cue, cueIndex}
+					<tr class={gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime ? 'active' : ''}>
+						<td class="time">
+							<button
+								onclick={() => {
+									goToTime(cue.startTime);
+								}}
+								class={(gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime
+									? 'active'
+									: '') + ' jump'}
 							>
-								{cue.text}
-							</div>
-						{:else}
-							<div style="width:100%; display: flex; flex-direction: column;">
+								<!-- {Math.round(gs.time)} -->
+							</button>
+							<div
+								class="start"
+								contenteditable="true"
+								onfocusout={(e) => {
+									cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
+								}}
+								bind:textContent={
+									() => {
+										cue.startTime ? cue.startTime : 0;
+										return cueDoubleToTimeString(cue.startTime);
+									},
+									() => {}
+								}
+								aria-label="start time"
+							></div>
+
+							<div
+								class="end"
+								contenteditable="true"
+								onfocusout={(e) => {
+									cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
+								}}
+								bind:textContent={
+									() => {
+										cue.endTime ? cue.endTime : 0;
+										return cueDoubleToTimeString(cue.endTime);
+									},
+									() => {}
+								}
+								aria-label="end time"
+							></div>
+						</td>
+						<td id={`en${cueIndex}`}>
+							{#if !subState.err[0]}
 								<div
+									class="subtitle"
 									contenteditable="true"
-									oninput={(e) => {
-										cue.text = e.currentTarget.innerText;
-										console.log(e.currentTarget.innerText);
-									}}
+									bind:textContent={cue.text}
+									style={subState.err['en-US'] ? 'display:none' : ''}
 								>
-									{#each subState.err['en-US'].segments[cueIndex].words as word}
-										<span
-											style={`color: color-mix(in srgb, green ${Math.round(word.score * 100)}%, red`}
+									{cue.text}
+								</div>
+							{:else}
+								<div style="width:100%; display: flex; flex-direction: column;">
+									<div
+										contenteditable="true"
+										oninput={(e) => {
+											cue.text = e.currentTarget.innerText;
+											console.log(e.currentTarget.innerText);
+										}}
+									>
+										{#each subState.err['en-US'].segments[cueIndex].words as word}
+											<span
+												style={`color: color-mix(in srgb, green ${Math.round(word.score * 100)}%, red`}
+											>
+												{word.word}{' '}
+											</span>
+										{/each}
+									</div>
+								</div>
+							{/if}
+						</td>
+						{#if typeof subState.subs[1]?.content === 'object' && subState.subs[1]?.content.cues}
+							{#each [subState.subs[1]?.content.cues[cueIndex]] as cue}
+								<td>
+									{#if subState.subs[1].content.cues[cueIndex]?.text.includes('ErrorInChunk')}
+										<LtrslSingle
+											chunkNumber={subState.subs[1].content.cues[cueIndex].text.split('-')[1]}
+										/>
+									{/if}
+									{#if subState.subs[1].content.cues[cueIndex]?.text.includes('ErrorInChunk')}
+										<bold>Missing Cue!</bold>
+									{/if}
+									{#if !subState.subs[1].content.cues[cueIndex]?.startTime}
+										Probably a cue is missing
+									{/if}
+									{#if !subState.subs[1].content.cues[cueIndex]?.text}
+										<button onclick={() => swapCue(cueIndex, cueIndex - 1)}>swap up</button>
+										<button onclick={() => swapCue(cueIndex, cueIndex + 1)}>swap down</button>
+									{/if}
+									{#if subState.subs[1].content.cues[cueIndex]?.text}
+										<div
+											contenteditable="true"
+											bind:textContent={subState.subs[1].content.cues[cueIndex].text}
 										>
-											{word.word}{' '}
-										</span>
-									{/each}
-								</div>
-							</div>
+											{subState.subs[1].content.cues[cueIndex]?.text}
+										</div>
+									{/if}
+								</td>
+								<td class="time">
+									{#if subState.subs[1].content.cues[cueIndex]?.text}
+										<button
+											onclick={() => {
+												goToTime(cue.startTime);
+											}}
+											class={(gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime
+												? 'active'
+												: '') + ' jump'}
+										>
+											<!-- {Math.round(gs.time)} -->
+										</button>
+										<div
+											class="start"
+											contenteditable="true"
+											onfocusout={(e) => {
+												cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
+											}}
+											bind:textContent={
+												() => {
+													cue.startTime ? cue.startTime : 0;
+													return cueDoubleToTimeString(cue.startTime);
+												},
+												() => {}
+											}
+											aria-label="start time"
+										></div>
+
+										<div
+											class="end"
+											contenteditable="true"
+											onfocusout={(e) => {
+												cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
+											}}
+											bind:textContent={
+												() => {
+													cue.endTime ? cue.endTime : 0;
+													return cueDoubleToTimeString(cue.endTime);
+												},
+												() => {}
+											}
+											aria-label="end time"
+										></div>
+									{/if}
+								</td>
+							{/each}
 						{/if}
-					</td>
-					{#if typeof subState.subs['fi-FI']?.content === 'object' && subState.subs['fi-FI']?.content.cues}
-						{#each [subState.subs['fi-FI']?.content.cues[cueIndex]] as cue}
-							<td>
-								{#if subState.subs['fi-FI'].content.cues[cueIndex].text.includes('ErrorInChunk')}
-									<LtrslSingle
-										chunkNumber={subState.subs['fi-FI'].content.cues[cueIndex].text.split('-')[1]}
-									/>
-								{/if}
-								{#if !subState.subs['fi-FI'].content.cues[cueIndex].text}
-									<button onclick={() => swapCue(cueIndex, cueIndex - 1)}>swap up</button>
-									<button onclick={() => swapCue(cueIndex, cueIndex + 1)}>swap down</button>
-								{/if}
-
-								<div
-									contenteditable="true"
-									bind:textContent={subState.subs['fi-FI'].content.cues[cueIndex].text}
-								>
-									{subState.subs['fi-FI'].content.cues[cueIndex].text}
-								</div>
-							</td>
-							<td class="time">
-								<button
-									onclick={() => {
-										goToTime(cue.startTime);
-									}}
-									class={(gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime
-										? 'active'
-										: '') + ' jump'}
-								>
-									<!-- {Math.round(gs.time)} -->
-								</button>
-								<div
-									class="start"
-									contenteditable="true"
-									onfocusout={(e) => {
-										cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
-									}}
-									bind:textContent={
-										() => {
-											cue.startTime ? cue.startTime : 0;
-											return cueDoubleToTimeString(cue.startTime);
-										},
-										() => {}
-									}
-									aria-label="start time"
-								></div>
-
-								<div
-									class="end"
-									contenteditable="true"
-									onfocusout={(e) => {
-										cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
-									}}
-									bind:textContent={
-										() => {
-											cue.endTime ? cue.endTime : 0;
-											return cueDoubleToTimeString(cue.endTime);
-										},
-										() => {}
-									}
-									aria-label="end time"
-								></div>
-							</td>
-						{/each}
-					{/if}
-				</tr>
-			{/each}
+					</tr>
+				{/each}
+			{/if}
 		{/if}
 	</tbody>
 </table>
@@ -286,7 +306,7 @@
 				width: 50%;
 				height: 50%;
 				&.active {
-					background-color: rgb(3, 73, 97);
+					background-color: var(--primary-color-active);
 					width: 80%;
 					height: 80%;
 				}

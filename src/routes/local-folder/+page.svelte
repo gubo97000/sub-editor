@@ -126,15 +126,17 @@
 
 		/** @type {VideoLibrary} */
 		const videoLibTemp = {};
-		files.map((file) => {
-			if (file.type.includes('video')) {
+		const subtitlesFlatTree=filesTree.filter(([path,file]) => {
+			if (file.type.includes('video') || file.name.includes('mkv')) {
 				videoLibTemp[file.name.split('.').slice(0, -1).join()] = { video: file };
-				return file;
+				return false;
 			}
+			return true;
 		});
 
-		for (const [filePath, file] of filesTree) {
-			const fileName = file.name.split('.').slice(0, -1).join(); //video_name
+		//To be soon removed, old strategy
+		for (const [filePath, file] of subtitlesFlatTree) {
+			const fileName = file.name.split('.')[0]; //video_name
 			const fileExt = file.name.split('.').slice(-1).join(); //srt
 			if (!videoLibTemp[fileName]) continue;
 			try {
@@ -166,6 +168,23 @@
 					if (file.name.includes('.srt')) {
 						videoLibTemp[fileName]['subCorFinFile'] = file;
 					}
+				}
+			} catch (e) {
+				console.error('what', fileName);
+				console.error(e);
+			}
+
+			try {
+				if (file.name.includes('.srt')) {
+					videoLibTemp[fileName]['subtitles'] = videoLibTemp[fileName]['subtitles'] || [];
+					const regex = /^[^.]+\.(.+)\.srt$/;
+					const match = file.name.match(regex);
+					const language = match ? match[1] :(filePath ?? 'unknown');
+					videoLibTemp[fileName]['subtitles'].push({
+						file: file,
+						language: language,
+						id: language
+					});
 				}
 			} catch (e) {
 				console.error('what', fileName);
@@ -205,29 +224,38 @@
 	const loadVideoEntry = async (/** @type {string} */ id) => {
 		return context.videoLib[id].video;
 	};
+
+	const getVideoEntrySync = (/** @type {string} */ id) => {
+		return context.videoLib[id].video;
+	};
 	const loadSubtitles = async (/** @type {string} */ id) => {
 		//Temporary 🔴
-		return [
-			context.videoLib[id]?.subFile
-				? { text: context.videoLib[id]?.subFile, id: 'en-US', language: 'English' }
-				: null,
-			context.videoLib[id]?.subCorFile
-				? { text: context.videoLib[id]?.subCorFile, id: 'en-UK', language: 'En-Corrected' }
-				: null,
-			context.videoLib[id]?.subFinFile
-				? { text: context.videoLib[id]?.subFinFile, id: 'fi-FI', language: 'Finnish' }
-				: null,
-			context.videoLib[id]?.subCorFinFile
-				? { text: context.videoLib[id]?.subCorFinFile, id: 'fi-FI', language: 'Fi-Finnish' }
-				: null
-		].filter((file) => file);
+		// return [
+		// 	context.videoLib[id]?.subFile
+		// 		? { text: context.videoLib[id]?.subFile, id: 'en-US', language: 'English' }
+		// 		: null,
+		// 	context.videoLib[id]?.subCorFile
+		// 		? { text: context.videoLib[id]?.subCorFile, id: 'en-UK', language: 'En-Corrected' }
+		// 		: null,
+		// 	context.videoLib[id]?.subFinFile
+		// 		? { text: context.videoLib[id]?.subFinFile, id: 'fi-FI', language: 'Finnish' }
+		// 		: null,
+		// 	context.videoLib[id]?.subCorFinFile
+		// 		? { text: context.videoLib[id]?.subCorFinFile, id: 'fi-FI', language: 'Fi-Finnish' }
+		// 		: null
+		// ].filter((file) => file);
+
+		return context.videoLib[id]?.subtitles.map((sub) => {
+			return { text: sub.file, id: sub.id, language: sub.language };
+		});
 	};
 
 	setContext('videoLib', context);
 
 	setContext('utils', {
 		loadVideoEntry,
-		loadSubtitles
+		loadSubtitles,
+		getVideoEntrySync
 	});
 </script>
 
