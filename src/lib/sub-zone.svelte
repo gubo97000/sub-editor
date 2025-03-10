@@ -4,6 +4,7 @@
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { VTTToSrt } from '../lib/subs.js';
 	import LtrslSingle from './ltrsl-single.svelte';
+	import Ltrsl from './ltrsl.svelte';
 	import SubtitleSelect from './subtitle-select.svelte';
 	import TranscribeButton from './transcribeButton.svelte';
 	import { cueDoubleToTimeString, timeStringToCueDouble } from './utility.js';
@@ -65,8 +66,7 @@
 	const swapCue = (index, swapIndex) => {
 		if (swapIndex < 0) return;
 		const temp = subState.subs[1].content.cues[index].text;
-		subState.subs[1].content.cues[index].text =
-			subState.subs[1].content.cues[swapIndex].text;
+		subState.subs[1].content.cues[index].text = subState.subs[1].content.cues[swapIndex].text;
 		subState.subs[1].content.cues[swapIndex].text = temp;
 	};
 </script>
@@ -174,78 +174,84 @@
 							{/if}
 						</td>
 						{#if typeof subState.subs[1]?.content === 'object' && subState.subs[1]?.content.cues}
-							{#each [subState.subs[1]?.content.cues[cueIndex]] as cue}
-								<td>
-									{#if subState.subs[1].content.cues[cueIndex]?.text.includes('ErrorInChunk')}
-										<LtrslSingle
-											chunkNumber={subState.subs[1].content.cues[cueIndex].text.split('-')[1]}
-										/>
-									{/if}
-									{#if subState.subs[1].content.cues[cueIndex]?.text.includes('ErrorInChunk')}
-										<bold>Missing Cue!</bold>
-									{/if}
-									{#if !subState.subs[1].content.cues[cueIndex]?.startTime}
-										Probably a cue is missing
-									{/if}
-									{#if !subState.subs[1].content.cues[cueIndex]?.text}
-										<button onclick={() => swapCue(cueIndex, cueIndex - 1)}>swap up</button>
-										<button onclick={() => swapCue(cueIndex, cueIndex + 1)}>swap down</button>
-									{/if}
-									{#if subState.subs[1].content.cues[cueIndex]?.text}
-										<div
-											contenteditable="true"
-											bind:textContent={subState.subs[1].content.cues[cueIndex].text}
-										>
-											{subState.subs[1].content.cues[cueIndex]?.text}
-										</div>
-									{/if}
-								</td>
-								<td class="time">
-									{#if subState.subs[1].content.cues[cueIndex]?.text}
-										<button
-											onclick={() => {
-												goToTime(cue.startTime);
-											}}
-											class={(gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime
-												? 'active'
-												: '') + ' jump'}
-										>
-											<!-- {Math.round(gs.time)} -->
-										</button>
-										<div
-											class="start"
-											contenteditable="true"
-											onfocusout={(e) => {
-												cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
-											}}
-											bind:textContent={
-												() => {
-													cue.startTime ? cue.startTime : 0;
-													return cueDoubleToTimeString(cue.startTime);
-												},
-												() => {}
-											}
-											aria-label="start time"
-										></div>
+							{#if subState.subs[1].id === '_translate'}
+							
+									<td> <Ltrsl /> </td>
+							
+							{:else}
+								{#each [subState.subs[1]?.content.cues[cueIndex]] as cue}
+									<td>
+										{#if subState.subs[1].content.cues[cueIndex]?.text.includes('ErrorInChunk')}
+											<LtrslSingle
+												chunkNumber={subState.subs[1].content.cues[cueIndex].text.split('-')[1]}
+											/>
+										{/if}
+										{#if subState.subs[1].content.cues[cueIndex]?.text.includes('ErrorInChunk')}
+											<bold>Missing Cue!</bold>
+										{/if}
+										{#if !subState.subs[1].content.cues[cueIndex]?.startTime}
+											Probably a cue is missing
+										{/if}
+										{#if !subState.subs[1].content.cues[cueIndex]?.text}
+											<button onclick={() => swapCue(cueIndex, cueIndex - 1)}>swap up</button>
+											<button onclick={() => swapCue(cueIndex, cueIndex + 1)}>swap down</button>
+										{/if}
+										{#if subState.subs[1].content.cues[cueIndex]?.text}
+											<div
+												contenteditable="true"
+												bind:textContent={subState.subs[1].content.cues[cueIndex].text}
+											>
+												{subState.subs[1].content.cues[cueIndex]?.text}
+											</div>
+										{/if}
+									</td>
+									<td class="time">
+										{#if subState.subs[1].content.cues[cueIndex]?.text}
+											<button
+												onclick={() => {
+													goToTime(cue.startTime);
+												}}
+												class={(gs.time && gs.time >= cue.startTime && gs.time <= cue.endTime
+													? 'active'
+													: '') + ' jump'}
+											>
+												<!-- {Math.round(gs.time)} -->
+											</button>
+											<div
+												class="start"
+												contenteditable="true"
+												onfocusout={(e) => {
+													cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
+												}}
+												bind:textContent={
+													() => {
+														cue.startTime ? cue.startTime : 0;
+														return cueDoubleToTimeString(cue.startTime);
+													},
+													() => {}
+												}
+												aria-label="start time"
+											></div>
 
-										<div
-											class="end"
-											contenteditable="true"
-											onfocusout={(e) => {
-												cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
-											}}
-											bind:textContent={
-												() => {
-													cue.endTime ? cue.endTime : 0;
-													return cueDoubleToTimeString(cue.endTime);
-												},
-												() => {}
-											}
-											aria-label="end time"
-										></div>
-									{/if}
-								</td>
-							{/each}
+											<div
+												class="end"
+												contenteditable="true"
+												onfocusout={(e) => {
+													cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
+												}}
+												bind:textContent={
+													() => {
+														cue.endTime ? cue.endTime : 0;
+														return cueDoubleToTimeString(cue.endTime);
+													},
+													() => {}
+												}
+												aria-label="end time"
+											></div>
+										{/if}
+									</td>
+								{/each}
+							{/if}
 						{/if}
 					</tr>
 				{/each}

@@ -41,6 +41,7 @@
 		"browser-fs-access": "^0.35.0",
 		"eslint-plugin-jsdoc": "^50.6.3",
 		"idb-keyval": "^6.2.1",
+		"json5": "^2.2.3",
 		"jszip": "^3.10.1",
 		"langchain": "^0.3.15",
 		"media-captions": "^1.0.3",

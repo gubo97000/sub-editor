@@ -158,43 +158,6 @@
 				}); //🔴
 				// player.src = { src: videoLib[selectedVideo].video, type: 'video/object' };
 			}
-
-			// u.loadSubtitles(selectedVideo).then((subs) => {
-			// 	console.log(subs);
-			// 	subs.map((subtitle) => {
-			// 		subtitleParser(subtitle.text).then((content) => {
-			// 			console.log(content);
-			// 			if (content) {
-			// 				alerts.parsingErrors.push(content?.alerts);
-			// 				subState.subs[subtitle.id] = {
-			// 					content: content,
-			// 					id: subtitle.id,
-			// 					label: subtitle.language,
-			// 					kind: 'captions',
-			// 					default: true,
-			// 					language: subtitle.id,
-			// 					type: 'json'
-			// 				};
-			// 			}
-			// 		});
-			// 	});
-			// });
-
-			// u.loadAllSubtitles(selectedVideo)
-
-			// if (correctSub && context.videoLib[selectedVideo]?.subCorFile !== undefined) {
-			// 	console.log(context.videoLib[selectedVideo]?.subCorFile?.webkitRelativePath);
-			// 	setSubFile(context.videoLib[selectedVideo].subCorFile);
-			// } else if (context.videoLib[selectedVideo]?.subFile)
-			// 	setSubFile(context.videoLib[selectedVideo].subFile);
-
-			// if (correctTranslateSub && context.videoLib[selectedVideo]?.subCorFinFile)
-			// 	setFinSubFile(context.videoLib[selectedVideo].subCorFinFile);
-			// else if (context.videoLib[selectedVideo]?.subFinFile)
-			// 	setFinSubFile(context.videoLib[selectedVideo].subFinFile);
-			// if (!correctSub)
-			// 	if (context.videoLib[selectedVideo]?.errorFile)
-			// 		setSubErrorFile(context.videoLib[selectedVideo].errorFile);
 		}
 	});
 

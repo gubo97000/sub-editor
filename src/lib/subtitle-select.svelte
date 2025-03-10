@@ -92,11 +92,19 @@
 	});
 
 	const handleSelect = (e) => {
-		if (e.target.value === '_empty') {
+		if (e.target.value === '_transcribe') {
 			subState.subs[index] = {
 				content: { cues: [] },
 				id: '_transcribe',
 				label: 'Transcribe',
+				kind: 'captions',
+				default: true
+			};
+		} else if (e.target.value === '_translate') {  // Handle the new "Translate" option
+			subState.subs[index] = {
+				content: { cues: [] },
+				id: '_translate',
+				label: 'Translate',
 				kind: 'captions',
 				default: true
 			};
@@ -131,9 +139,9 @@
 		</option>
 	{/each}
 	{#if index === 0}
-		<option value="_empty">Transcribe!</option>
+		<option value="_transcribe">Transcribe!</option>
 	{/if}
 	{#if index === 1}
-		<option value="_empty">Translate!</option>
+		<option value="_translate">Translate!</option>
 	{/if}
 </select>

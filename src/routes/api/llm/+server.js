@@ -31,9 +31,9 @@ export const POST = async ({ request }) => {
     }
 
     const model = new ChatOpenAI({
-        // ...AaltoConfig,
-        ...GlhfConfig,
-        
+        ...AaltoConfig,
+        // ...GlhfConfig,
+
         temperature: 0.8,
         verbose: true
     });

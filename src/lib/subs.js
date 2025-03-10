@@ -180,3 +180,29 @@ export const PANOPTO_LANGUAGE_CODES_TO_ID = {
 			}
 		}
 	};
+
+    export const whisperX2Srt = (c) => {
+        return c.segments.map((seg, index) => {
+            const id = index + 1;
+    
+            /**
+             * Converts a duration from seconds to a string formatted as "HH:MM:SS,mmm".
+             *
+             * @param {Number} d - The duration in seconds.
+             * @returns {string} The formatted time string.
+             */
+            const secondsToHms = (d) => {
+                const h = Math.floor(d / 3600);
+                const m = Math.floor(d % 3600 / 60);
+                const s = Math.floor(d % 3600 % 60);
+                let ms = d.toString().split('.')?.[1] ?? "000";
+                if (ms) {
+                    ms = ms.length > 3 ? ms.slice(0, 3) : ms.padEnd(3, '0');
+                }
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${ms}`;
+            }
+            const startTime = secondsToHms(seg.start);
+            const endTime = secondsToHms(seg.end);
+            return `${id}\n${startTime} --> ${endTime}\n${seg.text}`;
+        }).join('\n\n');
+    }
