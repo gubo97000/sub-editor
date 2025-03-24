@@ -1,7 +1,7 @@
 <script>
 	import { getSubState } from '$lib/stores/subState.svelte';
 
-	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
+	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte.js';
 	import { getContext } from 'svelte';
 	import { VTTToSrt } from '../lib/subs.js';
 	import PanoptoUploadDialog from './dialog/panopto-upload-dialog.svelte';

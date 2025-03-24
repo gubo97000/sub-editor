@@ -8,7 +8,7 @@ export async function load({fetch, params }) {
 		{
 			method: 'GET',
 			headers: {
-				Authorization: 'Bearer ' + pA.accessToken,
+				Authorization: 'Bearer ' + pA.value.accessToken,
 			}
 		}
 	);
@@ -23,7 +23,7 @@ export async function load({fetch, params }) {
 		{
 			method: 'GET',
 			headers: {
-				Authorization: 'Bearer ' + pA.accessToken,
+				Authorization: 'Bearer ' + pA.value.accessToken,
 				"Access-Control-Allow-Origin": "no-cors"
 			}
 		}

@@ -1,5 +1,7 @@
 // import { get } from "svelte/store";
 
+import { LocalStorage } from "./storage.svelte";
+
 
 
 // export function getGlobState() {
@@ -99,6 +101,7 @@ export function localStoreSyncRune(key, initialValue) {
             }
         }
     });
+    
     return state;
 }
 
@@ -115,4 +118,5 @@ export function localStoreSyncRune(key, initialValue) {
 export const globalStatus = localStoreRune("globalStatus",  /** @type {GlobalStatus} */{ time: 0, selectedVideo: "", transcriptionCorrections: [], translationCorrections: [] });
 
 
-export const panoptoAuth = localStoreSyncRune("auth", { accessToken: "", refreshToken: "" }); 
+// export const panoptoAuth = localStoreSyncRune("auth", { accessToken: "", refreshToken: "" }); 
+export const panoptoAuth = new LocalStorage("auth", { accessToken: "", refreshToken: "" }); 

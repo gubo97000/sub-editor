@@ -27,7 +27,7 @@ export const authedFetch = async (endpoint, options={}) => {
     const response = await fetch(endpoint, {
         method: 'GET',
         headers: {
-            Authorization: 'Bearer ' + (await import("./stores/globalStatus.svelte")).panoptoAuth.accessToken,
+            Authorization: 'Bearer ' + (await import("./stores/globalStatus.svelte")).panoptoAuth.value.accessToken,
             // Authorization: 'Bearer ' + JSON.parse(localStorage.getItem('auth')??"")?.accessToken
         },
         ...options

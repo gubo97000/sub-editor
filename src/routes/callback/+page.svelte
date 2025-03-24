@@ -14,7 +14,7 @@
 			console.log(p);
 		}
 		if (newAccessToken) {
-			pA.accessToken = newAccessToken;
+			pA.value.accessToken = newAccessToken;
 			// localStorage.setItem('access_token', newAccessToken);
 			stateText = 'access token found, setting cookie';
 			// fetch('/api/v1/getCookie',{
@@ -27,7 +27,7 @@
 			// fetch(PUBLIC_PANOPTO_URL + '/Panopto/api/v1/auth/legacyLogin', {
 				method: 'GET',
 				headers: {
-					Authorization: 'Bearer ' + pA.accessToken
+					Authorization: 'Bearer ' + pA.value.accessToken
 				}
 			}).then((res) => {
 				console.log(res);

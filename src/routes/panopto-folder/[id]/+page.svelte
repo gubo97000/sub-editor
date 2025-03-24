@@ -1,6 +1,6 @@
 <script>
 	import { authedFetch } from '$lib/apiWrapper.js';
-	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
+	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte.js';
 	import {
 		PANOPTO_LANGUAGE_CODES,
 		PANOPTO_LANGUAGE_CODES_REDUCED,
@@ -96,7 +96,7 @@
 		await fetch(`/api/v1/proxy/api/v1/sessions/${videoName}/captions/languages/${language}`, {
 			method: 'DELETE',
 			headers: {
-				Authorization: 'Bearer ' + pA?.accessToken
+				Authorization: 'Bearer ' + pA.value?.accessToken
 			}
 		}).then(() => {
 			const formData = new FormData();
@@ -105,7 +105,7 @@
 			fetch(`/api/v1/proxy/api/v1/sessions/${videoName}/captions`, {
 				method: 'POST',
 				headers: {
-					Authorization: 'Bearer ' + pA?.accessToken
+					Authorization: 'Bearer ' + pA.value?.accessToken
 				},
 				body: formData
 			});

@@ -4,7 +4,7 @@
 	import { Dialog, Label, Separator } from 'bits-ui';
 //Copied from +page.svelte /panopto-folder
 	import { authedFetch } from '$lib/apiWrapper';
-	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
+	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte.js';
 	import { getSubState } from '$lib/stores/subState.svelte';
 
 	/**
@@ -17,41 +17,53 @@
 	/** @type {Props} */
 	const { presetSubtitleIndex } = $props();
 
+	let isInitFinished = $state(false);
+	let errorMessage = $state('');
+
 	let ret = $state([]);
 	let availableLanguages = $state([]);
 	let selectedLanguage = $state('');
 	let selectedPanoptoVideo = $state('');
 	let subToSaveKey = $state(presetSubtitleIndex?.toString());
+
 	const subState = getSubState().subState;
 
-	$inspect(ret, availableLanguages);
+	$inspect(ret, availableLanguages, errorMessage);
 
-	// Put this onOpen of the dialog 🔴
-	fetch(
-		`/api/v1/proxy/Api/Folders?parentId=null&folderSet=3&includeMyFolder=true&includePersonalFolders=true&page=0&sort=Depth&names%5B0%5D=SessionCount`
-	)
-		.then((res) => res.json())
-		.then((json) => {
-			// console.log(json);
-			// ret = json;
-			return json;
-		})
-		.then((folder) => {
-			Promise.all(
-				folder.flatMap((r) => {
-					if (r.SessionCount > 0) {
-						// console.log(r.SessionCount);
-						return fetchFolderContent(r.Id);
-					}
-					return [];
-				})
-			).then((data) => {
-				ret = data.flatMap((d) => {
-					return d.Results;
+	const onOpenChangeHandle = async (open) => {
+		if (!open) return;
+		isInitFinished = false;
+		errorMessage = '';
+
+		fetch(
+			`/api/v1/proxy/Api/Folders?parentId=null&folderSet=3&includeMyFolder=true&includePersonalFolders=true&page=0&sort=Depth&names%5B0%5D=SessionCount`
+		)
+			.then((res) => {
+				return res.json();
+			})
+			.then((json) => {
+				// console.log(json);
+				// ret = json;
+				return json;
+			})
+			.then((folder) => {
+				Promise.all(
+					folder.flatMap((r) => {
+						if (r.SessionCount > 0) {
+							// console.log(r.SessionCount);
+							return fetchFolderContent(r.Id);
+						}
+						return [];
+					})
+				).then((data) => {
+					ret = data.flatMap((d) => {
+						return d.Results;
+					});
+					isInitFinished = true;
+					return data;
 				});
-				return data;
 			});
-		});
+	};
 
 	const fetchFolderContent = async (folderId = '', index = 0) => {
 		const res = await fetch(
@@ -60,10 +72,15 @@
 			{
 				method: 'GET',
 				headers: {
-					Authorization: 'Bearer ' + pA?.accessToken
+					Authorization: 'Bearer ' + pA.value?.accessToken
 				}
 			}
 		);
+		if (!res.ok) {
+			errorMessage =res.status===401?"Please Log into Panopto and reopen this dialog" : 'Error: ' + res.status + ' ' + res.statusText;
+
+			return;
+		}
 		let data = await res.json();
 		if (data.Results.length > 0) {
 			// console.log(data.Results);
@@ -117,7 +134,7 @@
 			{
 				method: 'DELETE',
 				headers: {
-					Authorization: 'Bearer ' + pA?.accessToken
+					Authorization: 'Bearer ' + pA.value?.accessToken
 				}
 			}
 		).then(() => {
@@ -127,7 +144,7 @@
 			fetch(`/api/v1/proxy/api/v1/sessions/${selectedPanoptoVideo}/captions`, {
 				method: 'POST',
 				headers: {
-					Authorization: 'Bearer ' + pA?.accessToken
+					Authorization: 'Bearer ' + pA.value?.accessToken
 				},
 				body: formData
 			});
@@ -136,59 +153,66 @@
 	};
 </script>
 
-<Dialog.Root>
-	<Dialog.Trigger>
-		Save in Panopto
-	</Dialog.Trigger>
+<Dialog.Root onOpenChange={onOpenChangeHandle}>
+	<Dialog.Trigger>Save in Panopto</Dialog.Trigger>
 	<Dialog.Portal>
 		<Dialog.Overlay />
 		<Dialog.Content>
 			<Dialog.Title></Dialog.Title>
 			<Dialog.Description />
 			<Auth />
-			<div>
-				Subtitle to Upload:
-				<select bind:value={subToSaveKey} >
-					{#each Object.entries(subState?.subs) as [key, sub]}
-						<option value={key}> {sub.label}</option>
-					{/each}
-				</select>
-			</div>
-			<div>
-				Receiving Video
-				<select onchange={onSelectChange} bind:value={selectedPanoptoVideo}>
-					{#each ret as r}
-						<option value={r?.Id}> {r?.FolderDetails?.Name}/{r?.Name}</option>
-					{/each}
-				</select>
-			</div>
+			{#if isInitFinished}
+				<div>
+					Subtitle to Upload:
+					<select bind:value={subToSaveKey}>
+						{#each Object.entries(subState?.subs) as [key, sub]}
+							<option value={key}> {sub.label}</option>
+						{/each}
+					</select>
+				</div>
 
-			<div>
-				Language of subtitle
-				<select bind:value={selectedLanguage}>
-					{#each PANOPTO_LANGUAGE_CODES as l}
-						<option value={l}>
-							{l}
-							{availableLanguages.includes(l) ? '🔴 (Overwrite)' : ''}
-						</option>
-					{/each}
-				</select>
-			</div>
+				<div>
+					Receiving Video
+					<select onchange={onSelectChange} bind:value={selectedPanoptoVideo}>
+						{#each Object.entries(ret).sort((a, b) => {
+							return `${a[1]?.FolderDetails?.Name}/${a[1]?.Name}`.localeCompare( `${b[1]?.FolderDetails?.Name}/${b[1]?.Name}`, undefined, { numeric: true, sensitivity: 'base' } );
+						}) as [_, r]}
+							<option value={r?.Id}> {r?.FolderDetails?.Name}/{r?.Name}</option>
+						{/each}
+					</select>
+				</div>
 
-			<button onclick={onSubmit}>
-				{availableLanguages.includes(selectedLanguage)
-					? 'Send to Panopto (🔴 Overwrite)'
-					: 'Send to Panopto'}
-			</button>
+				<div>
+					Language of subtitle
+					<select bind:value={selectedLanguage}>
+						{#each PANOPTO_LANGUAGE_CODES as l}
+							<option value={l}>
+								{l}
+								{availableLanguages.includes(l) ? '🔴 (Overwrite)' : ''}
+							</option>
+						{/each}
+					</select>
+				</div>
+
+				<button onclick={onSubmit}>
+					{availableLanguages.includes(selectedLanguage)
+						? 'Send to Panopto (🔴 Overwrite)'
+						: 'Send to Panopto'}
+				</button>
+			{:else if errorMessage}
+				{errorMessage}
+			{:else}
+				Loading
+			{/if}
 			<!-- <Dialog.Close /> -->
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>
 
 <style>
-	/* Base styles */
 	:global([data-dialog-content]) {
-		background-color: rgba(121, 212, 116, 0.611);
+		background-color: color-mix(in srgb, var(--primary-color-active) 90%, transparent);
+		/* background-color: var(--primary-color); */
 		position: absolute;
 		top: 10%;
 		left: 50%;
@@ -198,7 +222,6 @@
 		backdrop-filter: blur(4px);
 	}
 
-	/* Trigger styles based on state */
 	:global([data-dialog-overlay]) {
 		position: fixed;
 		inset: 0;
@@ -206,9 +229,8 @@
 		/* backdrop-filter: blur(4px); */
 	}
 
-
-	/* Content styles */
 	:global([data-dialog-content]) {
 		padding: 1rem;
 	}
+
 </style>

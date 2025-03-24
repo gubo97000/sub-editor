@@ -19,7 +19,7 @@
 			{
 				method: 'GET',
 				headers: {
-					Authorization: 'Bearer ' + pA.accessToken
+					Authorization: 'Bearer ' + pA.value.accessToken
 				}
 			}
 		);
