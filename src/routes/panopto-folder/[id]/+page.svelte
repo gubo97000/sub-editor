@@ -1,19 +1,31 @@
 <script>
 	import { authedFetch } from '$lib/apiWrapper.js';
+	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
 	import {
 		PANOPTO_LANGUAGE_CODES,
 		PANOPTO_LANGUAGE_CODES_REDUCED,
-		PANOPTO_LANGUAGE_CODES_TO_ID
+		PANOPTO_LANGUAGE_CODES_TO_ID,
+		VTTToSrt
 	} from '$lib/subs.js';
+	import { extractVideoId } from '$lib/utility.js';
 	import ViewEdit from '$lib/view-edit.svelte';
+	import { Popover } from 'bits-ui';
 	import { set } from 'idb-keyval';
 	import { setContext } from 'svelte';
+
+
+	let popoverOpen =$state(false);
+	let popoverAnchor=$state()
+	let selectedLanguage=$state("")
+
+
 	const { data } = $props();
 	console.log($state.snapshot(data));
 	console.log(data);
 
 	const loadVideoEntry = async (/** @type {string} */ id) => {
 		// "https://aalto.cloud.panopto.eu/Panopto/Podcast/Download/ba16432b-aa6d-4a84-abbc-b274007767ef.mp4?mediaTargetType=videoPodcast"
+		// return `/api/v1/proxy/Podcast/Download/${id}.mp4?mediaTargetType=videoPodcast`;
 		return `/api/v1/proxy/Podcast/Download/${id}.mp4?mediaTargetType=videoPodcast`;
 	};
 
@@ -63,10 +75,53 @@
 		return (await Promise.all(subsPromises)).filter((subs) => subs?.text !== '');
 	};
 
+	const saveSubtitle = async (subToSave, video, element=undefined) => {
+		if(!PANOPTO_LANGUAGE_CODES.includes(subToSave.label)){
+			// Open the save subtitle modal
+			popoverOpen=true;
+			popoverAnchor=element
+			return;
+		}
+		const videoName = extractVideoId(video);
+		const language =  subToSave.label;
+		// const language = 'Italian';
+		let srt = VTTToSrt(
+			subToSave?.content?.cues.map((cue) => {
+				return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
+			})
+		);
+		let blob = new Blob([srt], { type: 'text/plain' });
+		console.log(subToSave, video);
+
+		await fetch(`/api/v1/proxy/api/v1/sessions/${videoName}/captions/languages/${language}`, {
+			method: 'DELETE',
+			headers: {
+				Authorization: 'Bearer ' + pA?.accessToken
+			}
+		}).then(() => {
+			const formData = new FormData();
+			formData.append('language', language);
+			formData.append('', new File([blob], 'sub-editor.srt', { type: 'text/plain' }));
+			fetch(`/api/v1/proxy/api/v1/sessions/${videoName}/captions`, {
+				method: 'POST',
+				headers: {
+					Authorization: 'Bearer ' + pA?.accessToken
+				},
+				body: formData
+			});
+		});
+		return true;
+	};
+
+	const popoverSaveHandle = ()=>{
+		
+	}
+
 	if (data?.videoLib) {
 		const videoLib = data?.videoLib;
-		setContext('videoLib', {videoLib});
+		setContext('videoLib', { videoLib });
 		setContext('utils', {
+			saveSubtitle,
 			loadVideoEntry,
 			loadSubtitles,
 			getVideoEntrySync
@@ -75,3 +130,41 @@
 </script>
 
 <ViewEdit />
+ 
+<Popover.Root bind:open={popoverOpen}>
+	<Popover.Trigger />
+	<Popover.Content customAnchor={popoverAnchor}>
+		Select Language
+		<div>
+			Language of subtitle
+			<select bind:value={selectedLanguage}>
+				{#each PANOPTO_LANGUAGE_CODES as l}
+					<option value={l}>
+						{l}
+						<!-- {availableLanguages.includes(l) ? '🔴 (Overwrite)' : ''} -->
+					</option>
+				{/each}
+			</select>
+		</div>
+		<button onclick={popoverSaveHandle}> Save </button>
+		<!-- <Popover.Close />
+		<Popover.Arrow /> -->
+	</Popover.Content>
+</Popover.Root>
+
+<style>
+	/* Base styles */
+	:global([data-popover-content]) {
+		background-color: rgba(121, 212, 116, 0.611);
+		position: absolute;
+		top: 10%;
+		left: 50%;
+
+		border-radius: 16px;
+
+		backdrop-filter: blur(4px);
+
+		padding: 12px;
+	}
+
+	</style>

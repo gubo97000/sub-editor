@@ -2,7 +2,9 @@
 	import { getSubState } from '$lib/stores/subState.svelte';
 
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
+	import { getContext } from 'svelte';
 	import { VTTToSrt } from '../lib/subs.js';
+	import PanoptoUploadDialog from './dialog/panopto-upload-dialog.svelte';
 	import LtrslSingle from './ltrsl-single.svelte';
 	import Ltrsl from './ltrsl.svelte';
 	import SubtitleSelect from './subtitle-select.svelte';
@@ -10,6 +12,8 @@
 	import { cueDoubleToTimeString, timeStringToCueDouble } from './utility.js';
 
 	const { subState } = getSubState();
+	const c = getContext('videoLib');
+	const u = getContext('utils');
 	$inspect(subState);
 	/**
 	 * @typedef {Object} MyProps
@@ -78,12 +82,26 @@
 			<th>
 				Original
 				<SubtitleSelect autoLoad={['en-US', 'en', 'auto']} index={0} />
+				<button
+					onclick={(e) => {
+						u.saveSubtitle(subState.subs[0], subState.video, e.target);
+					}}>Save</button
+				>
+				<PanoptoUploadDialog presetSubtitleIndex={0} />
 				<button onclick={() => exportSub(subState.subs[0], 'srt')}>export</button>
 				<button onclick={() => exportSub(subState.subs[0], 'txt')}>txt</button>
 			</th>
 			<th>
 				Finnish
 				<SubtitleSelect autoLoad={['fi-FI', 'fi', 'auto']} index={1} />
+				<button
+					onclick={() => {
+						u.saveSubtitle(subState.subs[1], subState.video);
+					}}
+				>
+					Save
+				</button>
+				<PanoptoUploadDialog presetSubtitleIndex={1} />
 				<button onclick={() => exportSub(subState.subs[1], 'srt')}>export</button>
 				<button onclick={() => exportSub(subState.subs[1], 'txt')}>txt</button>
 			</th>
@@ -175,9 +193,7 @@
 						</td>
 						{#if typeof subState.subs[1]?.content === 'object' && subState.subs[1]?.content.cues}
 							{#if subState.subs[1].id === '_translate'}
-							
-									<td> <Ltrsl /> </td>
-							
+								<td> <Ltrsl /> </td>
 							{:else}
 								{#each [subState.subs[1]?.content.cues[cueIndex]] as cue}
 									<td>
@@ -196,9 +212,11 @@
 											<button onclick={() => swapCue(cueIndex, cueIndex - 1)}>swap up</button>
 											<button onclick={() => swapCue(cueIndex, cueIndex + 1)}>swap down</button>
 										{/if}
-										{#if subState.subs[1].content.cues[cueIndex]?.text}
+										{#if subState.subs[1].content.cues[cueIndex]}
 											<div
 												contenteditable="true"
+												style={!subState.subs[1].content.cues[cueIndex]?.text &&
+													'border: 1px solid gray'}
 												bind:textContent={subState.subs[1].content.cues[cueIndex].text}
 											>
 												{subState.subs[1].content.cues[cueIndex]?.text}

@@ -135,7 +135,7 @@
 <select bind:value>
 	{#each subtitles as sub, i}
 		<option value={sub.id}>
-			{sub.id}
+			{sub.language}
 		</option>
 	{/each}
 	{#if index === 0}

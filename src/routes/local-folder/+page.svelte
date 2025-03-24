@@ -1,15 +1,10 @@
 <script>
-	import { getSubState } from '$lib/stores/subState.svelte';
-
-	import AuthButton from '$lib/auth.svelte';
+	import { VTTToSrt } from '$lib/subs';
 	import { verifyPermission } from '$lib/utility.js';
 	import ViewEdit from '$lib/view-edit.svelte';
-	import { text } from '@sveltejs/kit';
-	import { directoryOpen, fileOpen, fileSave, supported } from 'browser-fs-access';
+	import { fileSave } from 'browser-fs-access';
 	import { get, set } from 'idb-keyval';
-	import { parseByteStream, parseText } from 'media-captions';
 	import { onMount, setContext } from 'svelte';
-	import { FullscreenButton, Time } from 'vidstack';
 	import 'vidstack/player';
 	import 'vidstack/player/layouts/plyr';
 	import 'vidstack/player/styles/base.css';
@@ -90,20 +85,21 @@
 	 */
 	const getFilesDictFlatTree = async (dirHandle, parent) => {
 		if (!dirHandle) return [];
-		/** @type {[string, File][]} */
+		/** @type {[string, File, FileSystemHandle][]} */
 		let promises = [];
 
 		for await (const entry of dirHandle.values()) {
 			if (entry.kind === 'file') {
 				promises.push([
 					parent + entry.name,
-					await /** @type {FileSystemFileHandle} */ (entry).getFile()
+					await /** @type {FileSystemFileHandle} */ (entry).getFile(),
+					entry
 				]);
 			} else {
 				promises.push(
 					...(await getFilesDictFlatTree(
 						/** @type {FileSystemDirectoryHandle} */ (entry),
-						parent + '/' + entry.name + '/'
+						parent + '' + entry.name + '/'
 					))
 				);
 			}
@@ -126,7 +122,7 @@
 
 		/** @type {VideoLibrary} */
 		const videoLibTemp = {};
-		const subtitlesFlatTree=filesTree.filter(([path,file]) => {
+		const subtitlesFlatTree = filesTree.filter(([path, file, entry]) => {
 			if (file.type.includes('video') || file.name.includes('mkv')) {
 				videoLibTemp[file.name.split('.').slice(0, -1).join()] = { video: file };
 				return false;
@@ -135,55 +131,56 @@
 		});
 
 		//To be soon removed, old strategy
-		for (const [filePath, file] of subtitlesFlatTree) {
+		for (const [filePath, file, handle] of subtitlesFlatTree) {
 			const fileName = file.name.split('.')[0]; //video_name
 			const fileExt = file.name.split('.').slice(-1).join(); //srt
 			if (!videoLibTemp[fileName]) continue;
-			try {
-				// if (file.webkitRelativePath.includes('/output/')) {
-				// console.log(file);
-				// console.log(filePath);
-				if (filePath.includes('/SubtitlesLukas/')) {
-					// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
-					if (file.type.includes('json')) {
-						videoLibTemp[fileName]['errorFile'] = file;
-					}
-					if (file.name.includes('.srt')) {
-						videoLibTemp[fileName]['subFile'] = file;
-					}
-				}
-				if (filePath.includes('/SubtitlesCorrected/')) {
-					if (file.name.includes('.srt')) {
-						videoLibTemp[fileName]['subCorFile'] = file;
-					}
-				}
-				if (filePath.includes('/Translations/')) {
-					// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
-					if (file.name.includes('.srt')) {
-						videoLibTemp[fileName]['subFinFile'] = file;
-					}
-				}
-				if (filePath.includes('/TranslationsCorrected/')) {
-					// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
-					if (file.name.includes('.srt')) {
-						videoLibTemp[fileName]['subCorFinFile'] = file;
-					}
-				}
-			} catch (e) {
-				console.error('what', fileName);
-				console.error(e);
-			}
+			// try {
+			// 	// if (file.webkitRelativePath.includes('/output/')) {
+			// 	// console.log(file);
+			// 	// console.log(filePath);
+			// 	if (filePath.includes('/SubtitlesLukas/')) {
+			// 		// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
+			// 		if (file.type.includes('json')) {
+			// 			videoLibTemp[fileName]['errorFile'] = file;
+			// 		}
+			// 		if (file.name.includes('.srt')) {
+			// 			videoLibTemp[fileName]['subFile'] = file;
+			// 		}
+			// 	}
+			// 	if (filePath.includes('/SubtitlesCorrected/')) {
+			// 		if (file.name.includes('.srt')) {
+			// 			videoLibTemp[fileName]['subCorFile'] = file;
+			// 		}
+			// 	}
+			// 	if (filePath.includes('/Translations/')) {
+			// 		// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
+			// 		if (file.name.includes('.srt')) {
+			// 			videoLibTemp[fileName]['subFinFile'] = file;
+			// 		}
+			// 	}
+			// 	if (filePath.includes('/TranslationsCorrected/')) {
+			// 		// if (!videoLib[file.name.split('.').slice(0, -1).join()]) continue;
+			// 		if (file.name.includes('.srt')) {
+			// 			videoLibTemp[fileName]['subCorFinFile'] = file;
+			// 		}
+			// 	}
+			// } catch (e) {
+			// 	console.error('what', fileName);
+			// 	console.error(e);
+			// }
 
 			try {
 				if (file.name.includes('.srt')) {
 					videoLibTemp[fileName]['subtitles'] = videoLibTemp[fileName]['subtitles'] || [];
 					const regex = /^[^.]+\.(.+)\.srt$/;
 					const match = file.name.match(regex);
-					const language = match ? match[1] :(filePath ?? 'unknown');
+					const language = match ? match[1] : (filePath ?? 'unknown');
 					videoLibTemp[fileName]['subtitles'].push({
 						file: file,
 						language: language,
-						id: language
+						id: filePath,
+						handle: handle,
 					});
 				}
 			} catch (e) {
@@ -229,30 +226,34 @@
 		return context.videoLib[id].video;
 	};
 	const loadSubtitles = async (/** @type {string} */ id) => {
-		//Temporary 🔴
-		// return [
-		// 	context.videoLib[id]?.subFile
-		// 		? { text: context.videoLib[id]?.subFile, id: 'en-US', language: 'English' }
-		// 		: null,
-		// 	context.videoLib[id]?.subCorFile
-		// 		? { text: context.videoLib[id]?.subCorFile, id: 'en-UK', language: 'En-Corrected' }
-		// 		: null,
-		// 	context.videoLib[id]?.subFinFile
-		// 		? { text: context.videoLib[id]?.subFinFile, id: 'fi-FI', language: 'Finnish' }
-		// 		: null,
-		// 	context.videoLib[id]?.subCorFinFile
-		// 		? { text: context.videoLib[id]?.subCorFinFile, id: 'fi-FI', language: 'Fi-Finnish' }
-		// 		: null
-		// ].filter((file) => file);
-
 		return context.videoLib[id]?.subtitles.map((sub) => {
 			return { text: sub.file, id: sub.id, language: sub.language };
 		});
 	};
 
+	const saveSubtitle = (subToSave, video) => {
+		let srt = VTTToSrt(
+			subToSave?.content?.cues.map((cue) => {
+				return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
+			})
+		);
+		let blob = new Blob([srt], { type: 'text/plain' });
+		console.log(subToSave, video);
+		console.log(context.videoLib[video.name.split('.')[0]]);
+		let previousFile = context.videoLib[video.name.split('.')[0]].subtitles.find((el) => {
+			console.log(el.id, subToSave.id, el.id === subToSave.id);
+			return el.id === subToSave.id;
+		});
+		// if (previousFile) {
+		// }
+		console.log(previousFile)
+		return fileSave(blob, {}, previousFile?.handle);
+	};
+
 	setContext('videoLib', context);
 
 	setContext('utils', {
+		saveSubtitle,
 		loadVideoEntry,
 		loadSubtitles,
 		getVideoEntrySync

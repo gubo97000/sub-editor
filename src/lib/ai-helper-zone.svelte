@@ -1,4 +1,5 @@
 <script>
+	import { sleep } from 'langchain/util/time';
 	import { custom } from 'zod';
 	import { globalStatus as gs, localStoreRune } from './stores/globalStatus.svelte.js';
 	import { getSubState } from './stores/subState.svelte';
@@ -9,13 +10,12 @@
 	let fetchNum = $state(0);
 	let fetchEndNum = $state(0);
 
-
 	let customOptions = localStoreRune('customOptions', {
 		endpoint: '',
 		model: '',
 		apiKey: '',
 		commands: '',
-		chunckSize: 10
+		chunkSize: undefined
 	});
 
 	const { subState } = getSubState();
@@ -47,23 +47,24 @@
 			});
 
 			// Split `toSend` into chunks of 10
-			const chunkSize = 10;
+			const chunkSize = customOptions?.chunkSize ?? toSend.length;
 			const chunks = [];
 			for (let i = 0; i < toSend.length; i += chunkSize) {
 				chunks.push(toSend.slice(i, i + chunkSize));
 			}
 
 			// Fetch each chunk in parallel
-			const promises = [...chunks].map((chunk) => {
+			const promises = [...chunks].map(async (chunk, index) => {
 				console.log(chunk);
 				fetchNum += 1;
+				await sleep(index * 1000);
 				return fetch('/api/custom-llm', {
 					method: 'POST',
 					body: JSON.stringify({
 						options: {
 							apiUrl: customOptions?.endpoint,
-							model: customOptions?.model, 
-							apiKey: customOptions?.apiKey, 
+							model: customOptions?.model,
+							apiKey: customOptions?.apiKey,
 							commands: customOptions?.commands
 						},
 						data: chunk
@@ -111,9 +112,12 @@
 	<div>
 		Enter your API key:
 		<input type="text" bind:value={customOptions.apiKey} />
+		<br />
+		Chunk Size (empty will be a single api call, useful if there is a limit on api call)
+		<input type="number" bind:value={customOptions.chunkSize} />
 	</div>
 	<p>Enter your instructions:</p>
-	<textarea bind:value={customOptions.commands} ></textarea>
+	<textarea bind:value={customOptions.commands}></textarea>
 	<button onclick={clickHandler} disabled={fetchEndNum !== fetchNum}
 		>{fetchEndNum === fetchNum ? 'Get Hints!' : `Loading ${fetchEndNum}/${fetchNum}`}</button
 	>
@@ -125,22 +129,24 @@
 			<table>
 				<tbody>
 					{#each gs.transcriptionCorrections as res}
-						<tr>
-							<td>
-								<button href={`#en${res.index}`} type="link" onclick={scrollIntoView}>
-									{res.index}</button
-								>
-							</td>
-							<td>
-								<span class="error-string">{res.errorString}</span>
-							</td>
-							<td>
-								<span style="">{res.correctionString}</span>
-							</td>
-							<td>
-								<span style="">{res.note}</span>
-							</td>
-						</tr>
+						{#if res.index && res.errorString && res.correctionString}
+							<tr>
+								<td>
+									<button href={`#en${res.index}`} type="link" onclick={scrollIntoView}>
+										{res.index}</button
+									>
+								</td>
+								<td>
+									<span class="error-string">{res.errorString}</span>
+								</td>
+								<td>
+									<span style="">{res.correctionString}</span>
+								</td>
+								<td>
+									<span style="">{res.note}</span>
+								</td>
+							</tr>
+						{/if}
 					{/each}
 				</tbody>
 			</table>

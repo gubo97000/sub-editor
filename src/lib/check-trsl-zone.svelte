@@ -91,26 +91,28 @@
 		{buttonText}
 	{/if} -->
 	{#if gs.translationCorrections.length > 0}
-		<div >
+		<div>
 			<table>
 				<tbody>
 					{#each gs.translationCorrections as res}
-						<tr>
-							<td>
-								<button href={`#en${res.index}`} type="link" onclick={scrollIntoView}>
-									{res.index}</button
-								>
-							</td>
-							<td>
-								<span class="error-string">{res.errorString}</span>
-							</td>
-							<td>
-								<span style="">{res.correctionString}</span>
-							</td>
-							<td>
-								<span style="">{res.note}</span>
-							</td>
-						</tr>
+						{#if res.index && res.errorString && res.correctionString}
+							<tr>
+								<td>
+									<button href={`#en${res.index}`} type="link" onclick={scrollIntoView}>
+										{res.index}</button
+									>
+								</td>
+								<td>
+									<span class="error-string">{res.errorString}</span>
+								</td>
+								<td>
+									<span style="">{res.correctionString}</span>
+								</td>
+								<td>
+									<span style="">{res.note}</span>
+								</td>
+							</tr>
+						{/if}
 					{/each}
 				</tbody>
 			</table>

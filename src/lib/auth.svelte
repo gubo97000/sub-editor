@@ -9,12 +9,12 @@
 	const authEndpoint = `${panoptoBaseUrl}${authUrl}?client_id=${clientId}&redirect_uri=${redirectURI}&response_type=token&scope=${scopes}`;
 
 	console.log('hello', panoptoAuth);
-	
+
 	/**
 	 * Parses a JSON Web Token (JWT) and returns its payload.
 	 *
 	 * @param {string} token - The JWT to be parsed.
-	 * @returns {Object|undefined} The payload of the JWT.
+	 * @returns {Object | undefined} The payload of the JWT.
 	 */
 	function parseJwt(token) {
 		if (token == '') {

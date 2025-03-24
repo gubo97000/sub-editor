@@ -8,6 +8,7 @@
 	import { parse } from 'svelte/compiler';
 	import { getSubState } from './stores/subState.svelte';
 	import { subtitleParser, whisperX2Srt } from './subs';
+	import { extractVideoId } from './utility';
 
 	/**
 	 * Props for the TranscribeButton component.
@@ -28,7 +29,7 @@
 	const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
 	// /api/v1/proxy/Podcast/Download/${id}.mp4?mediaTargetType=videoPodcast
 	const videoName =
-		typeof videoFile === 'string' ? (videoFile.split('/')?.[5] ?? 'panopto_video') : videoFile.name;
+		typeof videoFile === 'string' ? (extractVideoId(videoFile) ?? 'panopto_video') : videoFile.name;
 	const ffmpeg = new FFmpeg();
 
 	let message = 'Click Start to Transcode';

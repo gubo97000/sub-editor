@@ -9,9 +9,9 @@
 		`/api/v1/proxy/Api/Folders?parentId=null&folderSet=3&includeMyFolder=true&includePersonalFolders=true&page=0&sort=Depth&names%5B0%5D=SessionCount`
 	)
 		.then((res) => res.json())
-		.then((text) => {
-			console.log(text);
-			ret = text;
+		.then((json) => {
+			console.log(json);
+			ret = json;
 		});
 	const fetchFolderContent = async (folderId = '', index = 0) => {
 		const res = await fetch(

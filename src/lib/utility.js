@@ -55,3 +55,16 @@ export async function verifyPermission(fileHandle, withWrite) {
    // The user did not grant permission, return false.
    return false;
  }
+
+ /**
+ * Extracts the video ID from a Panopto URL pattern
+ * 
+ * @param {string} url - URL string containing the video ID
+ * @returns {string|null} The extracted ID or null if not found
+ */
+export function extractVideoId(url) {
+  // Match everything between "/Download/" and ".mp4"
+  const regex = /\/Download\/([^.]+)\.mp4/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}

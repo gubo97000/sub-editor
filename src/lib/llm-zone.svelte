@@ -1,5 +1,4 @@
 <script>
-
 	import { globalStatus as gs } from './stores/globalStatus.svelte.js';
 	import { getSubState } from './stores/subState.svelte';
 
@@ -95,22 +94,24 @@
 			<table>
 				<tbody>
 					{#each gs.transcriptionCorrections as res}
-						<tr>
-							<td>
-								<button href={`#en${res.index}`} type="link" onclick={scrollIntoView}>
-									{res.index}</button
-								>
-							</td>
-							<td>
-								<span class="error-string">{res.errorString}</span>
-							</td>
-							<td>
-								<span style="">{res.correctionString}</span>
-							</td>
-							<td>
-								<span style="">{res.note}</span>
-							</td>
-						</tr>
+						{#if res.index && res.errorString && res.correctionString}
+							<tr>
+								<td>
+									<button href={`#en${res.index}`} type="link" onclick={scrollIntoView}>
+										{res.index}</button
+									>
+								</td>
+								<td>
+									<span class="error-string">{res.errorString}</span>
+								</td>
+								<td>
+									<span style="">{res.correctionString}</span>
+								</td>
+								<td>
+									<span style="">{res.note}</span>
+								</td>
+							</tr>
+						{/if}
 					{/each}
 				</tbody>
 			</table>
@@ -134,7 +135,7 @@
 		background-color: var(--color);
 		/* border-radius: 4px; */
 		/* border:1px solid black;  */
-		padding:1px 4px;
+		padding: 1px 4px;
 		-webkit-box-decoration-break: clone;
 		/* box-shadow:
 			-0.2em -0.1em 0 var(--color),
