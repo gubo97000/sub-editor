@@ -10,6 +10,9 @@
 	import { subtitleParser, whisperX2Srt } from './subs';
 	import { extractVideoId } from './utility';
 
+	import ffmpegCoreJs from '$lib/assets/ffmpeg-wasm/ffmpeg-core.js?url';
+	import ffmpegCoreWasm from '$lib/assets/ffmpeg-wasm/ffmpeg-core.wasm?url';
+
 	/**
 	 * Props for the TranscribeButton component.
 	 *
@@ -26,8 +29,9 @@
 
 	const subState = getSubState().subState;
 
-	const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
-	// /api/v1/proxy/Podcast/Download/${id}.mp4?mediaTargetType=videoPodcast
+	// const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
+	const baseURL = './assets/ffmpeg-core';
+
 	const videoName =
 		typeof videoFile === 'string' ? (extractVideoId(videoFile) ?? 'panopto_video') : videoFile.name;
 	const ffmpeg = new FFmpeg();
@@ -89,9 +93,12 @@
 			message = msg;
 			console.log(message);
 		});
+
 		await ffmpeg.load({
-			coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-			wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm')
+			// coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+			// wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm')
+			coreURL: ffmpegCoreJs,
+			wasmURL: ffmpegCoreWasm,
 			// workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript')
 		});
 		console.log('done');

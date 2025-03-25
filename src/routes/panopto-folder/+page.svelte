@@ -34,12 +34,11 @@
 		// }
 		let data = await res.json();
 		if (data.Results.length > 0) {
-			console.log(data.Results);
+			// console.log(data.Results);
 			data.Results = data.Results.concat(
 				(await fetchFolderContent(folderId, index + 1))?.Results ?? []
 			);
 		}
-		console.log(data);
 		return data;
 	};
 	$effect(() => {
@@ -47,12 +46,11 @@
 			Promise.all(
 				ret.flatMap((r) => {
 					if (r.SessionCount > 0) {
-						console.log(r.SessionCount);
+						// console.log(r.SessionCount);
 						fetchFolderContent(r.Id);
 					}
 				})
 			).then((data) => {
-				console.log(data);
 				return data;
 			});
 		}
