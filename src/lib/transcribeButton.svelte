@@ -30,7 +30,6 @@
 	const subState = getSubState().subState;
 
 	// const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
-	const baseURL = './assets/ffmpeg-core';
 
 	const videoName =
 		typeof videoFile === 'string' ? (extractVideoId(videoFile) ?? 'panopto_video') : videoFile.name;
@@ -48,7 +47,7 @@
 		console.log(ffmpeg.loaded);
 		console.log(await ffmpeg.writeFile('input.mp4', await fetchFile(videoFile)));
 		const datain = await ffmpeg.readFile('input.mp4');
-		console.log(datain);
+		// console.log(datain);
 		await ffmpeg.exec(['-i', 'input.mp4', '-vn', '-acodec', 'copy', 'out.mp4']);
 		message = 'Complete transcoding';
 		const data = await ffmpeg.readFile('out.mp4');
@@ -88,7 +87,7 @@
 	const handleLoad = async () => {
 		console.log('starting load');
 		// const ffmpeg = new FFmpeg();
-		message = 'Loading ffmpeg-core.js';
+		
 		ffmpeg.on('log', ({ message: msg }) => {
 			message = msg;
 			console.log(message);
@@ -98,7 +97,7 @@
 			// coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
 			// wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm')
 			coreURL: ffmpegCoreJs,
-			wasmURL: ffmpegCoreWasm,
+			wasmURL: ffmpegCoreWasm
 			// workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript')
 		});
 		console.log('done');
@@ -137,6 +136,7 @@
 		console.log(jobFile);
 		parseFile(jobFile[0]);
 	};
+
 	/**
 	 * Parse the file and save it to the state.
 	 *
@@ -159,19 +159,20 @@
 			}
 		});
 	};
-	const handleClick = () => {
+	const handleClick = async () => {
 		console.log('Transcribe!');
-		// SOME TETS FUNCTIONS FOR CORS PROBLEM WITH PANOPTO  CORS
-		// fetch("https://transcript.k8s.aalto.fi/transcription/jobs_in_processing",{headers: {
-		// 		Authorization: 'Bearer ' + PUBLIC_AALTO_SPEECH2TEXT_API_KEY
-		// 	},})
-		// fetch("https://download.cdn.cloud.panopto.eu/sessions/053bf10d-db8c-48ff-af40-b28500b984a0/d0351136-6238-455b-bb59-b28500b984a6-6762a3db-fe02-48c4-9661-b28901059476.mp4?response-content-disposition=attachment;filename=%22Course%20Information%20-%202025%20-%20English_default.mp4%22")
-		transcode(videoFile);
+		status = { status: 'Extracting audio', details: '' };
+		try {
+			await transcode(videoFile);
+		} catch (error) {
+			status = { status: error, details: '' };
+		}
 	};
 </script>
 
 <!-- <button onclick={handleLoad}>Load</button> -->
 
+<p>Panopto throws a CORS error, you need to download a CORS-allow extension</p>
 <button onclick={handleClick}> Transcribe! </button>
 
 {status.status}

@@ -232,22 +232,24 @@
 	};
 
 	const saveSubtitle = (subToSave, video) => {
+		console.log("Saving Subtitle")
 		let srt = VTTToSrt(
 			subToSave?.content?.cues.map((cue) => {
 				return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
 			})
 		);
 		let blob = new Blob([srt], { type: 'text/plain' });
-		console.log(subToSave, video);
-		console.log(context.videoLib[video.name.split('.')[0]]);
-		let previousFile = context.videoLib[video.name.split('.')[0]].subtitles.find((el) => {
+		// console.log(subToSave, video);
+		// console.log(context.videoLib[video.name.split('.')[0]]);
+		let previousFile = context.videoLib[video.name.split('.')[0]]?.subtitles?.find((el) => {
 			console.log(el.id, subToSave.id, el.id === subToSave.id);
 			return el.id === subToSave.id;
 		});
-		// if (previousFile) {
-		// }
-		console.log(previousFile)
-		return fileSave(blob, {}, previousFile?.handle);
+		// console.log(previousFile)
+		const fileHandle=fileSave(blob, {}, previousFile?.handle);
+		console.log("Saving Successful")
+		return fileHandle;
+		
 	};
 
 	setContext('videoLib', context);
