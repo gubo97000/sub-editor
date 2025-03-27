@@ -52,7 +52,7 @@ export const POST = async ({ request }) => {
 
     here the file: `;
 
-    const response = await model.invoke(preamble + JSON.stringify(reqData));
+    const response = await model.invoke(preamble + JSON.stringify(data));
     // console.log(response);
     return new Response(JSON.stringify(response), {
         headers: { 'Content-Type': 'application/json' }

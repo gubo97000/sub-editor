@@ -13,11 +13,9 @@
 	import { set } from 'idb-keyval';
 	import { setContext } from 'svelte';
 
-
-	let popoverOpen =$state(false);
-	let popoverAnchor=$state()
-	let selectedLanguage=$state("")
-
+	let popoverOpen = $state(false);
+	let popoverAnchor = $state();
+	let selectedLanguage = $state('');
 
 	const { data } = $props();
 	console.log($state.snapshot(data));
@@ -75,15 +73,16 @@
 		return (await Promise.all(subsPromises)).filter((subs) => subs?.text !== '');
 	};
 
-	const saveSubtitle = async (subToSave, video, element=undefined) => {
-		if(!PANOPTO_LANGUAGE_CODES.includes(subToSave.label)){
+	const saveSubtitle = async (subToSave, video, element = undefined) => {
+		if (!PANOPTO_LANGUAGE_CODES.includes(subToSave.label)) {
 			// Open the save subtitle modal
-			popoverOpen=true;
-			popoverAnchor=element
+			popoverAnchor = element;
+			popoverOpen = true;
+			// Await the popover closing by returning a Promise.
 			return;
 		}
 		const videoName = extractVideoId(video);
-		const language =  subToSave.label;
+		const language = subToSave.label;
 		// const language = 'Italian';
 		let srt = VTTToSrt(
 			subToSave?.content?.cues.map((cue) => {
@@ -112,9 +111,8 @@
 		});
 		return true;
 	};
-
-	const popoverSaveHandle = ()=>{
-		
+	const popoverSaveHandle =()=>{
+		if(selectedLanguage){}
 	}
 
 	if (data?.videoLib) {
@@ -130,10 +128,11 @@
 </script>
 
 <ViewEdit />
- 
+
 <Popover.Root bind:open={popoverOpen}>
-	<Popover.Trigger />
+	<!-- <Popover.Trigger /> -->
 	<Popover.Content customAnchor={popoverAnchor}>
+		🔴 THIS FEATURE IS NOT WORKING
 		Select Language
 		<div>
 			Language of subtitle
@@ -166,5 +165,4 @@
 
 		padding: 12px;
 	}
-
-	</style>
+</style>

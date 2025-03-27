@@ -180,7 +180,7 @@
 						file: file,
 						language: language,
 						id: filePath,
-						handle: handle,
+						handle: handle
 					});
 				}
 			} catch (e) {
@@ -231,8 +231,8 @@
 		});
 	};
 
-	const saveSubtitle = (subToSave, video) => {
-		console.log("Saving Subtitle")
+	const saveSubtitle = async (subToSave, video) => {
+		console.log('Saving Subtitle');
 		let srt = VTTToSrt(
 			subToSave?.content?.cues.map((cue) => {
 				return { text: cue.text, startTime: cue.startTime, endTime: cue.endTime };
@@ -246,10 +246,16 @@
 			return el.id === subToSave.id;
 		});
 		// console.log(previousFile)
-		const fileHandle=fileSave(blob, {}, previousFile?.handle);
-		console.log("Saving Successful")
+		const fileHandle = await fileSave(
+			blob,
+			{
+				fileName: `${video.name.split('.')[0]}.en.srt`,
+				extensions: ['.srt']
+			},
+			previousFile?.handle
+		);
+		console.log('Saving Successful');
 		return fileHandle;
-		
 	};
 
 	setContext('videoLib', context);
