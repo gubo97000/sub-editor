@@ -101,7 +101,7 @@ export function localStoreSyncRune(key, initialValue) {
             }
         }
     });
-    
+
     return state;
 }
 
@@ -113,10 +113,23 @@ export function localStoreSyncRune(key, initialValue) {
  * @property {string} selectedVideo - The currently selected video.
  * @property {Array} transcriptionCorrections - List of transcription corrections.
  * @property {Array} translationCorrections - List of translation corrections.
+ * @property {string} transcriptionCorrectionsRaw - Raw transcription corrections.
  */
 
-export const globalStatus = localStoreRune("globalStatus",  /** @type {GlobalStatus} */{ time: 0, selectedVideo: "", transcriptionCorrections: [], translationCorrections: [] });
+export const globalStatus = localStoreRune("globalStatus",  /** @type {GlobalStatus} */{ time: 0, selectedVideo: "", transcriptionCorrections: [],  transcriptionCorrectionsRaw:[],translationCorrections: [] });
 
 
 // export const panoptoAuth = localStoreSyncRune("auth", { accessToken: "", refreshToken: "" }); 
-export const panoptoAuth = new LocalStorage("auth", { accessToken: "", refreshToken: "" }); 
+export const panoptoAuth = new LocalStorage("auth", { accessToken: "", refreshToken: "" });
+
+export const customLLMEndpoints = new LocalStorage("customLLMEndpoints", {
+    endpoints: [{
+
+        endpoint: '',
+        model: '',
+        apiKey: '',
+        commands: '',
+        chunkSize: undefined
+
+    }]
+})

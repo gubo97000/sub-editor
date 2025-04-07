@@ -2,10 +2,13 @@
 import { AALTO_API_KEY, GLHF_API_KEY } from '$env/static/private';
 import { ChatOpenAI, OpenAI } from '@langchain/openai';
 export const POST = async ({ request }) => {
-
-    const reqData = JSON.parse(new TextDecoder().decode((await request.body?.getReader().read())?.value));
-    const options = reqData.options;
-    const data = reqData.data;
+    const formData = await request.formData()
+    console.log(formData)
+    const options = JSON.parse(formData.get("options"))
+    // const reqData = JSON.parse(new TextDecoder().decode((await request.body?.getReader().read())?.value));
+    // const options = reqData.options;
+    // const data = reqData.data;
+    const data = JSON.parse(formData.get("data"))
 
     const customConfig = {
         configuration: {
@@ -29,7 +32,7 @@ export const POST = async ({ request }) => {
     const model = new ChatOpenAI({
         ...(options.apiUrl ? customConfig : AaltoConfig),
         // ...GlhfConfig,
-
+        apiKey: options?.apiKey ?? "",
         temperature: 0.8,
         verbose: true
     });
@@ -51,10 +54,18 @@ export const POST = async ({ request }) => {
     ${options.commands}
 
     here the file: `;
-
-    const response = await model.invoke(preamble + JSON.stringify(data));
-    // console.log(response);
-    return new Response(JSON.stringify(response), {
-        headers: { 'Content-Type': 'application/json' }
-    });
+    try {
+        const response = await model.invoke(preamble + JSON.stringify(data));
+        const resData = new FormData()
+        resData.append("data", JSON.stringify(response))
+        return new Response(resData, {});
+    } catch (error) {
+        console.log(error)
+        return new Response(JSON.stringify({ error: error?.message ?? "" }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
 };

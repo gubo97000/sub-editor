@@ -111,10 +111,7 @@
 		});
 		return true;
 	};
-	const popoverSaveHandle =()=>{
-		if(selectedLanguage){}
-	}
-
+	
 	if (data?.videoLib) {
 		const videoLib = data?.videoLib;
 		setContext('videoLib', { videoLib });
@@ -130,24 +127,23 @@
 <ViewEdit />
 
 <Popover.Root bind:open={popoverOpen}>
-	<!-- <Popover.Trigger /> -->
-	<Popover.Content customAnchor={popoverAnchor}>
-		🔴 THIS FEATURE IS NOT WORKING
-		Select Language
-		<div>
+	<Popover.Trigger />
+	<Popover.Content customAnchor={popoverAnchor} interactOutsideBehavior="close" >
+	<p style="width:200px">
+		Use "Save in Panopto" for first save
+	</p>
+		<!-- <div>
 			Language of subtitle
 			<select bind:value={selectedLanguage}>
 				{#each PANOPTO_LANGUAGE_CODES as l}
 					<option value={l}>
 						{l}
-						<!-- {availableLanguages.includes(l) ? '🔴 (Overwrite)' : ''} -->
 					</option>
 				{/each}
 			</select>
 		</div>
 		<button onclick={popoverSaveHandle}> Save </button>
-		<!-- <Popover.Close />
-		<Popover.Arrow /> -->
+		<Popover.Close>Close</Popover.Close> -->
 	</Popover.Content>
 </Popover.Root>
 

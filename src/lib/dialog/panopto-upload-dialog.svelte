@@ -12,10 +12,11 @@
 	 *
 	 * @typedef {Object} Props
 	 * @property {number} [presetSubtitleIndex] - Preset what subtitle is chosen
+	 * @property {boolean} [showButton] 
 	 */
 
 	/** @type {Props} */
-	const { presetSubtitleIndex } = $props();
+	const { presetSubtitleIndex, showButton = true } = $props();
 
 	let isInitFinished = $state(false);
 	let errorMessage = $state('');
@@ -77,7 +78,10 @@
 			}
 		);
 		if (!res.ok) {
-			errorMessage =res.status===401?"Please Log into Panopto and reopen this dialog" : 'Error: ' + res.status + ' ' + res.statusText;
+			errorMessage =
+				res.status === 401
+					? 'Please Log into Panopto and reopen this dialog'
+					: 'Error: ' + res.status + ' ' + res.statusText;
 
 			return;
 		}
@@ -154,7 +158,9 @@
 </script>
 
 <Dialog.Root onOpenChange={onOpenChangeHandle}>
-	<Dialog.Trigger>Save in Panopto</Dialog.Trigger>
+	{#if showButton}
+		<Dialog.Trigger>Save in Panopto</Dialog.Trigger>
+	{/if}
 	<Dialog.Portal>
 		<Dialog.Overlay />
 		<Dialog.Content>
@@ -232,5 +238,4 @@
 	:global([data-dialog-content]) {
 		padding: 1rem;
 	}
-
 </style>
