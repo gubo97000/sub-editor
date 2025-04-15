@@ -4,7 +4,7 @@
 	import { Dialog, Label, Separator } from 'bits-ui';
 //Copied from +page.svelte /panopto-folder
 	import { authedFetch } from '$lib/apiWrapper';
-	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte.js';
+	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
 	import { getSubState } from '$lib/stores/subState.svelte';
 
 	/**

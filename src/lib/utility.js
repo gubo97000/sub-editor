@@ -68,3 +68,27 @@ export function extractVideoId(url) {
   const match = url.match(regex);
   return match ? match[1] : null;
 }
+
+
+export function insertTextPreservingUndo(textarea, text) {
+  // Store current selection
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  
+  // Create and dispatch a text input event
+  const event = new InputEvent('input', {
+    data: text,
+    bubbles: true,
+    cancelable: false
+  });
+  
+  textarea.dispatchEvent(event);
+  
+  // If the event was canceled, fall back to manual insertion
+  if (!event.defaultPrevented) {
+    const beforeText = textarea.value.substring(0, start);
+    const afterText = textarea.value.substring(end);
+    textarea.value = beforeText + text + afterText;
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+  }
+}

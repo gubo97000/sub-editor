@@ -1,6 +1,6 @@
 <script>
-	import CheckTrslZone from '$lib/check-trsl-zone.svelte';
-	import LlmZone from '$lib/llm-zone.svelte';
+	import CheckTrslZone from '$lib/llm-tabs/check-trsl-zone.svelte';
+	import LlmZone from '$lib/llm-tabs/llm-zone.svelte';
 	import Ltrsl from '$lib/ltrsl.svelte';
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { getSubState } from '$lib/stores/subState.svelte';
@@ -11,7 +11,9 @@
 	import 'vidstack/player/styles/base.css';
 	import 'vidstack/player/styles/plyr/theme.css';
 	import 'vidstack/player/ui';
-	import AiHelperZone from './ai-helper-zone.svelte';
+	import AiHelperZone from './llm-tabs/ai-helper-zone.svelte';
+	import CustomModelsZone from './llm-tabs/custom-models-zone.svelte';
+	import TranslationOptions from './llm-tabs/translation-options.svelte';
 	import TranscribeButton from './transcribeButton.svelte';
 
 	// import type { MediaPlayerElement } from 'vidstack/elements';
@@ -183,7 +185,7 @@
 </script>
 
 <div class="container">
-	<div style="position:sticky; top:0; height: 100vh; display:flex; flex-direction: column;">
+	<div style="position:sticky; top:0; display:flex; flex-direction: column; height:100%;">
 		<select bind:value={gs.selectedVideo}>
 			{#each Object.entries(context.videoLib).sort((a, b) => {
 				return a[1].video.name.localeCompare( b[1].video.name, undefined, { numeric: true, sensitivity: 'base' } );
@@ -206,6 +208,23 @@
 		<br />
 
 		<div style="display:flex">
+			<button
+				class={`tab-button ${showTab === 'customModels' && 'activeTab'}`}
+				onclick={() => {
+					showTab = 'customModels';
+				}}
+			>
+				Custom Models Options
+			</button>
+			<button
+				class={`tab-button ${showTab === 'translationOptions' && 'activeTab'}`}
+				onclick={() => {
+					showTab = 'translationOptions';
+				}}
+			>
+				Translation Options
+			</button>
+
 			<button
 				class={`tab-button ${showTab === 'customHelper' && 'activeTab'}`}
 				onclick={() => {
@@ -232,9 +251,16 @@
 					Translation Helper
 				</button>
 			{/if}
-			<Ltrsl />
+
+			<!-- <Ltrsl /> -->
 		</div>
 		<div class="activeTab" style="flex-grow: 1;">
+			{#if showTab === 'customModels'}
+				<CustomModelsZone />
+			{/if}
+			{#if showTab === 'translationOptions'}
+				<TranslationOptions />
+			{/if}
 			{#if showTab === 'transcriptionHelper'}
 				<LlmZone />
 			{/if}
@@ -251,18 +277,18 @@
 </div>
 
 <style>
-	:global(body) {
-		font-family: 'Roboto', sans-serif;
-		font-size: 15px;
-	}
 	.container {
 		display: flex;
 		flex-direction: row;
 		align-items: flex-start;
+		/* overflow:hidden; */
+		height: 96vh;
 		/* width: 300px; */
 	}
 	.active {
 		background-color: var(--primary-color-active);
+		height: 100%;
+		overflow: scroll;
 	}
 
 	media-player {

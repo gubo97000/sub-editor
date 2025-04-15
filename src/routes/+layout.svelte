@@ -2,7 +2,6 @@
     import "../main.css";
 </script>
 
-
 <slot/>
 
 <style>

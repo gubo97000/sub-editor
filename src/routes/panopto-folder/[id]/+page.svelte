@@ -1,6 +1,6 @@
 <script>
 	import { authedFetch } from '$lib/apiWrapper.js';
-	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte.js';
+	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
 	import {
 		PANOPTO_LANGUAGE_CODES,
 		PANOPTO_LANGUAGE_CODES_REDUCED,

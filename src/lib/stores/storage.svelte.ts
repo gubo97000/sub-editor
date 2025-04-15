@@ -63,7 +63,7 @@ export class LocalStorage<T> {
 				proxies.set(value, p);
 			}
 
-			return p;
+			return p ;
 		};
 
 		if ($effect.tracking()) {
@@ -85,7 +85,7 @@ export class LocalStorage<T> {
 			});
 		}
 
-		return proxy(root);
+		return proxy(root) as T;
 	}
 
 	set value(value) {
