@@ -61,13 +61,40 @@ export const POST = async ({ request }) => {
 	output list has to have the SAME number of strings be VERY careful, do not talk, only create the list, omit \`\`\`json, start with '[': `
 	let response = await model.invoke(preamble + JSON.stringify(data));
 
-	if (JSON.parse(response.content).length !== data.length) {
-		console.log(JSON.parse(response.content).length, data.length, "trying it again")
-		response = await model.invoke(preamble + response.content + " YOU MADE A MISTAKE AND THE LIST WAS NOT THE SAME SIZE AS THE ORIGINAL, DO IT AGAIN, BE MORE VIGILANT, DO NOT TALK DO NOT APOLOGIZE, start with '['")
-		console.log(JSON.parse(response.content).length, "new")
+	//Parse and clean up the response
+	const jsonContentParse = (response) => {
+		try {
+			let jsonContent = JSON.parse(response.content)
+			return jsonContent
+		} catch (error) {
+			console.log("trying to clean up", response)
+			let jsonContent = JSON.parse(String(response.content).replace(/```json/, "").replace(/```/, "").trim())
+			return jsonContent
+		}
 	}
 
-	const resData = new FormData()
-	resData.append("data", JSON.stringify(response))
-	return new Response(resData, {});
+	const jsonContent = jsonContentParse(response)
+
+	try {
+		//Checking the length of the response
+		if (jsonContent.length !== data.length) {
+			console.log(jsonContent.length, data.length, "trying it again")
+			response = await model.invoke(preamble + response.content + " YOU MADE A MISTAKE AND THE LIST WAS NOT THE SAME SIZE AS THE ORIGINAL, DO IT AGAIN, BE MORE VIGILANT, DO NOT TALK DO NOT APOLOGIZE, start with '['")
+			console.log(jsonContent.length, "new")
+			response.content = JSON.stringify(jsonContentParse(response))
+		}
+
+		const resData = new FormData()
+		resData.append("data", JSON.stringify(response))
+		return new Response(resData, {});
+
+	} catch (error) {
+		console.log("error parsing response", response)
+		return new Response(JSON.stringify({ error }), {
+			status: 500,
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+	}
 };
