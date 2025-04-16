@@ -284,7 +284,7 @@
 		<table>
 			<tbody>
 				{#each hintList as res, hintIndex}
-					{#if res.index?.toString() && res.errorString && res.correctionString}
+					{#if res.index?.toString() && res.errorString}
 						<tr
 							data-cue-tag={`#cue_${subIndex}-${res.index}`}
 							aria-disabled="true"
