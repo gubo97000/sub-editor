@@ -57,8 +57,8 @@ export const POST = async ({ request }) => {
 	//Create a structuredLLM model with the list
 	// const structuredLLM = model.withStructuredOutput(theList);
 	const preamble = `You are an expert english to finnish translator, 
-	translate the following list of strings from English to Finnish in the most natural sounding way possible, 
-	output list has to have the SAME number of strings be VERY careful, do not talk, only create the list, omit \`\`\`json, start with '[': `
+translate the following list of strings from English to Finnish in the most natural sounding way possible, 
+output list has to have the SAME number of strings be VERY careful, do not talk, only create the list, omit \`\`\`json, start with '[': `
 	let response = await model.invoke(preamble + JSON.stringify(data));
 
 	//Parse and clean up the response

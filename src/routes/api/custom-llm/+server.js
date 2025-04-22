@@ -57,6 +57,8 @@ export const POST = async ({ request }) => {
     here the file: `;
     try {
         const response = await model.invoke(preamble + JSON.stringify(data));
+
+        response.content = String(response.content).replace(/```json/, "").replace(/```/, "").trim()
         const resData = new FormData()
         resData.append("data", JSON.stringify(response))
         return new Response(resData, {});
