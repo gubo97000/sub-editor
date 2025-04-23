@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+	import { subStateSaved } from '$lib/stores/subState.svelte';
 	import { VTTToSrt } from '$lib/subs';
 	import { verifyPermission } from '$lib/utility.js';
 	import ViewEdit from '$lib/view-edit.svelte';
@@ -269,7 +270,13 @@
 </script>
 
 <div>
-	<button onclick={handleGetFolder}>Open Folder</button>
+	<button
+		onclick={() => {
+			if (subStateSaved.areSubtitleChangesSaved()) {
+				handleGetFolder();
+			}
+		}}>Open Folder</button
+	>
 	{#if folderHandle}
 		Folder <b>{folderHandle.name}</b> opened.
 		<b>{Object.entries(context?.videoLib ?? []).length}</b>

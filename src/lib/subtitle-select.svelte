@@ -2,7 +2,7 @@
 	import { getContext } from 'svelte';
 
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
-	import { getSubState } from './stores/subState.svelte';
+	import { getSubState, subStateSaved } from './stores/subState.svelte';
 	import { subtitleParser } from './subs';
 
 	/** @type {{ videoLib: VideoLibrary }} */
@@ -100,7 +100,8 @@
 				kind: 'captions',
 				default: true
 			};
-		} else if (e.target.value === '_translate') {  // Handle the new "Translate" option
+		} else if (e.target.value === '_translate') {
+			// Handle the new "Translate" option
 			subState.subs[index] = {
 				content: { cues: [] },
 				id: '_translate',
@@ -124,6 +125,7 @@
 					language: subtitle.id,
 					type: 'json'
 				};
+				subStateSaved.subs[index] = JSON.stringify(subState.subs[index]);
 				if ((content?.alerts?.length ?? 0) > 0) {
 					a['parsingErrors'].push(...(content.alerts ?? []));
 				}
@@ -132,7 +134,21 @@
 	};
 </script>
 
-<select bind:value>
+<select
+	bind:value={
+		() => value,
+		(v) => {
+			if (subStateSaved.areSubtitleChangesSaved(index)) {
+				value = v;
+				return;
+			}
+			return; //The value will not be changed
+		}
+	}
+	onchange={(e) => {
+		e.currentTarget.value = value; //This thing is necessary since bind doesn't reupdate
+	}}
+>
 	{#each subtitles as sub, i}
 		<option value={sub.id}>
 			{sub.language}

@@ -1,5 +1,5 @@
 <script>
-	import { getSubState } from '$lib/stores/subState.svelte';
+	import { getSubState, subStateSaved } from '$lib/stores/subState.svelte';
 
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { getContext } from 'svelte';
@@ -85,7 +85,9 @@
 					<SubtitleSelect autoLoad={['en-US', 'en', 'auto']} index={0} />
 					<button
 						onclick={(e) => {
-							u.saveSubtitle(subState.subs[0], subState.video, e.target);
+							if(u.saveSubtitle(subState.subs[0], subState.video, e.target)){
+								subStateSaved.subs[0]= JSON.stringify(subState.subs[0])
+							}
 						}}
 					>
 						Save
@@ -98,8 +100,10 @@
 					Finnish
 					<SubtitleSelect autoLoad={['fi-FI', 'fi', 'auto']} index={1} />
 					<button
-						onclick={() => {
-							u.saveSubtitle(subState.subs[1], subState.video);
+						onclick={(e) => {
+							if(u.saveSubtitle(subState.subs[1], subState.video, e.target)){
+								subStateSaved.subs[1]= JSON.stringify(subState.subs[1])
+							}
 						}}
 					>
 						Save

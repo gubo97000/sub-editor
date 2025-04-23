@@ -6,11 +6,11 @@
  */
 export const cueDoubleToTimeString = (cueDouble) => {
   return new Date(cueDouble * 1000)
-       .toISOString()
-       .substr(11, 8)
-       .replace(/^(00:)(?=\d{2}:)/, '') +
-       '.' +
-       cueDouble.toFixed(3).toString().split('.')[1]
+    .toISOString()
+    .substr(11, 8)
+    .replace(/^(00:)(?=\d{2}:)/, '') +
+    '.' +
+    cueDouble.toFixed(3).toString().split('.')[1]
 }
 
 
@@ -21,12 +21,12 @@ export const cueDoubleToTimeString = (cueDouble) => {
 * @returns {number} The total number of seconds represented by the time string.
 */
 export const timeStringToCueDouble = (timeString) => {
-   const chunks= timeString.split(".")[0].split(':')
-   if (chunks.length === 2) {
-       chunks.unshift("00");
-   }
-   const [hours, minutes, seconds] = chunks.map(chunk => parseInt(chunk, 10));
-   return hours * 3600 + minutes * 60 + seconds + parseFloat(timeString.split('.')[1]) / 1000;
+  const chunks = timeString.split(".")[0].split(':')
+  if (chunks.length === 2) {
+    chunks.unshift("00");
+  }
+  const [hours, minutes, seconds] = chunks.map(chunk => parseInt(chunk, 10));
+  return hours * 3600 + minutes * 60 + seconds + parseFloat(timeString.split('.')[1]) / 1000;
 }
 
 /**
@@ -37,31 +37,31 @@ export const timeStringToCueDouble = (timeString) => {
 * @returns {Promise<boolean>} - A promise that resolves to true if the required permissions are granted, otherwise false.
 */
 export async function verifyPermission(fileHandle, withWrite) {
-   const opts = {};
-   if (withWrite) {
-     opts.mode = "readwrite";
-   }
- 
-   // Check if we already have permission, if so, return true.
-   if ((await fileHandle.queryPermission(opts)) === "granted") {
-     return true;
-   }
- 
-   // Request permission to the file, if the user grants permission, return true.
-   if ((await fileHandle.requestPermission(opts)) === "granted") {
-     return true;
-   }
- 
-   // The user did not grant permission, return false.
-   return false;
- }
+  const opts = {};
+  if (withWrite) {
+    opts.mode = "readwrite";
+  }
 
- /**
- * Extracts the video ID from a Panopto URL pattern
- * 
- * @param {string} url - URL string containing the video ID
- * @returns {string|null} The extracted ID or null if not found
- */
+  // Check if we already have permission, if so, return true.
+  if ((await fileHandle.queryPermission(opts)) === "granted") {
+    return true;
+  }
+
+  // Request permission to the file, if the user grants permission, return true.
+  if ((await fileHandle.requestPermission(opts)) === "granted") {
+    return true;
+  }
+
+  // The user did not grant permission, return false.
+  return false;
+}
+
+/**
+* Extracts the video ID from a Panopto URL pattern
+* 
+* @param {string} url - URL string containing the video ID
+* @returns {string|null} The extracted ID or null if not found
+*/
 export function extractVideoId(url) {
   // Match everything between "/Download/" and ".mp4"
   const regex = /\/Download\/([^.]+)\.mp4/;
@@ -74,16 +74,16 @@ export function insertTextPreservingUndo(textarea, text) {
   // Store current selection
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
-  
+
   // Create and dispatch a text input event
   const event = new InputEvent('input', {
     data: text,
     bubbles: true,
     cancelable: false
   });
-  
+
   textarea.dispatchEvent(event);
-  
+
   // If the event was canceled, fall back to manual insertion
   if (!event.defaultPrevented) {
     const beforeText = textarea.value.substring(0, start);

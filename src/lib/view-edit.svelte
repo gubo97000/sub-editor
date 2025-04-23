@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
+	import { beforeNavigate } from '$app/navigation';
 	import CheckTrslZone from '$lib/llm-tabs/check-trsl-zone.svelte';
 	import LlmZone from '$lib/llm-tabs/llm-zone.svelte';
 	import Ltrsl from '$lib/ltrsl.svelte';
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
-	import { getSubState } from '$lib/stores/subState.svelte';
+	import { getSubState, subStateSaved } from '$lib/stores/subState.svelte';
 	import SubZone from '$lib/sub-zone.svelte';
 	import { getContext, onMount, setContext } from 'svelte';
 	import 'vidstack/player';
@@ -15,7 +16,6 @@
 	import CustomModelsZone from './llm-tabs/custom-models-zone.svelte';
 	import TranslationOptions from './llm-tabs/translation-options.svelte';
 	import TranscribeButton from './transcribeButton.svelte';
-
 	// import type { MediaPlayerElement } from 'vidstack/elements';
 
 	const { subState } = getSubState();
@@ -182,18 +182,36 @@
 		});
 		console.log(player?.src);
 	});
+
+	beforeNavigate((navigation) => {
+		if(subStateSaved.areSubtitleChangesSaved()){
+			return; //continue navigation
+		}
+		navigation.cancel();
+	});
 </script>
 
 <div class="container">
 	<div style="position:sticky; top:0; display:flex; flex-direction: column; height:100%;">
-		<select bind:value={gs.selectedVideo}>
+		<select
+			bind:value={
+				() => gs.selectedVideo,
+				(v) => {
+					if(subStateSaved.areSubtitleChangesSaved()){
+						gs.selectedVideo = v;
+					}
+				}
+			}
+			onchange={(e) => {
+				e.currentTarget.value = gs.selectedVideo; //This thing is necessary since bind doesn't reupdate
+			}}
+		>
 			{#each Object.entries(context.videoLib).sort((a, b) => {
 				return a[1].video.name.localeCompare( b[1].video.name, undefined, { numeric: true, sensitivity: 'base' } );
 			}) as [key, video]}
-				<option value={key}
-					>{(video.subFile ? (video.subFinFile ? '' : '🇫🇮') : '🔴') +
-						(video?.video?.name ?? key)}</option
-				>
+				<option value={key}>
+					{(video.subFile ? (video.subFinFile ? '' : '🇫🇮') : '🔴') + (video?.video?.name ?? key)}
+				</option>
 			{/each}
 		</select>
 		{#each alerts.parsingErrors as error}
