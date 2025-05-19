@@ -1,37 +1,21 @@
-<script>
-	import { getContext } from 'svelte';
-
+<script lang="ts">
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
-	import { getSubState, subStateSaved } from './stores/subState.svelte';
+	import { getContext } from 'svelte';
+	import { subState } from './stores/subState.svelte';
 	import { subtitleParser } from './subs';
+	import type { AlertsContext, VideoLibContext, } from './types';
 
-	/** @type {{ videoLib: VideoLibrary }} */
-	const c = getContext('videoLib');
-	const u = getContext('utils');
+	// /** @type {{ videoLib: VideoLibrary }} */
+	// const c = getContext<{ videoLib: VideoLibrary }>('videoLib');
+	const u = getContext<VideoLibContext>('utils');
 
-	const a = getContext('alerts');
+	const a = getContext<AlertsContext>('alerts');
 
 	const { autoLoad = [], index } = $props();
 
-	let subtitles = $state([]);
+	let subtitles = $state<Awaited<ReturnType<VideoLibContext['loadSubtitles']>>>([]);
 	let value = $state('');
 	$inspect(value, '✅ value');
-	// let value = $derived(autoLoad ? 0 : '');
-	const subState = getSubState().subState;
-
-	// const notSelectedSubtitles = $derived.by(
-	//     ()=>{
-	//         $inspect.trace();
-	//         return subtitles?.filter((s) => {
-	// 		return !Object.entries(subState.subs)
-	// 			.map((s) => {
-	// 				return s[1].id;
-	// 			})
-	// 			.includes(s.id);
-	// 	})
-	//     }
-	// );
-	// $inspect(notSelectedSubtitles);
 
 	//On selected video change
 	$effect(() => {
@@ -43,55 +27,32 @@
 		});
 	});
 
-	//On subtitles change, search ids for autoload
-	// $effect(() => {
-	//     // console.log(autoLoad);
-	//     if (value) return;
-	//     if (!subtitles) return;
-	//     onUpdatedSubtitleList();
-	// 	// if (autoLoad) {
-	// 	// 	for (let loadId of autoLoad) {
-	// 	// 		for (let sub of $state.snapshot(subtitles)) {
-	//     //             // console.log(sub.id, loadId)
-	// 	// 			if (sub.id === loadId) {
-	// 	// 				value = sub.id;
-	//     //                 return;
-	// 	// 			}
-	// 	// 		}
-	//     //         if (loadId === "auto") {
-	//     //             // value = $state.snapshot(notSelectedSubtitles)?.[0]?.id;
-	//     //             value = $state.snapshot(subtitles)?.[0]?.id;
-	//     //         }
-	// 	// 	}
-	// 	// }
-	// });
-
 	const onUpdatedSubtitleList = () => {
 		console.log('Updated subtitle list');
 		if (autoLoad) {
 			for (let loadId of autoLoad) {
-				for (let sub of $state.snapshot(subtitles)) {
-					// console.log(sub.id, loadId)
-					if (sub.id === loadId) {
-						value = sub.id;
+				for (let i in subtitles) {
+					console.log(subtitles[i], 'test');
+					if (subtitles[i].id === loadId) {
+						value = subtitles[i].id ?? '';
 						return;
 					}
 				}
 				if (loadId === 'auto') {
 					// value = $state.snapshot(notSelectedSubtitles)?.[0]?.id;
-					value = $state.snapshot(subtitles)?.[index]?.id;
+					value = subtitles?.[index].id ?? '';
 				}
 			}
 		}
 	};
 
 	$effect(() => {
-		console.log($state.snapshot(value), $state.snapshot(subtitles));
+		console.log(value, subtitles);
 		if (!value && !subtitles) return;
 		handleSelect({ target: { value: value } });
 	});
 
-	const handleSelect = (e) => {
+	const handleSelect = (e: { target: { value: string } }) => {
 		if (e.target.value === '_transcribe') {
 			subState.subs[index] = {
 				content: { cues: [] },
@@ -110,7 +71,7 @@
 				default: true
 			};
 		}
-		let subtitle = $state.snapshot(subtitles.find((s) => s.id === e.target.value));
+		let subtitle = subtitles.find((s) => s.id === e.target.value);
 		if (!subtitle) return;
 		console.log(e.target.value, subtitle);
 		a['parsingErrors'] = [];
@@ -125,7 +86,7 @@
 					language: subtitle.id,
 					type: 'json'
 				};
-				subStateSaved.subs[index] = JSON.stringify(subState.subs[index]);
+				subState.resetSavedState(index);
 				if ((content?.alerts?.length ?? 0) > 0) {
 					a['parsingErrors'].push(...(content.alerts ?? []));
 				}
@@ -138,7 +99,7 @@
 	bind:value={
 		() => value,
 		(v) => {
-			if (subStateSaved.areSubtitleChangesSaved(index)) {
+			if (subState.confirmDiscard(index)) {
 				value = v;
 				return;
 			}

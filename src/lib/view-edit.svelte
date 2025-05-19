@@ -4,7 +4,7 @@
 	import LlmZone from '$lib/llm-tabs/llm-zone.svelte';
 	import Ltrsl from '$lib/ltrsl.svelte';
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
-	import { getSubState, subStateSaved } from '$lib/stores/subState.svelte';
+	import { subState } from '$lib/stores/subState.svelte';
 	import SubZone from '$lib/sub-zone.svelte';
 	import { getContext, onMount, setContext } from 'svelte';
 	import 'vidstack/player';
@@ -18,7 +18,7 @@
 	import TranscribeButton from './transcribeButton.svelte';
 	// import type { MediaPlayerElement } from 'vidstack/elements';
 
-	const { subState } = getSubState();
+	// const { subState } = getSubState();
 	/** @type {import('vidstack/elements').MediaPlayerElement?} } */
 	let player = $state(null);
 
@@ -184,7 +184,7 @@
 	});
 
 	beforeNavigate((navigation) => {
-		if(subStateSaved.areSubtitleChangesSaved()){
+		if (subState.confirmDiscard()) {
 			return; //continue navigation
 		}
 		navigation.cancel();
@@ -197,13 +197,14 @@
 			bind:value={
 				() => gs.selectedVideo,
 				(v) => {
-					if(subStateSaved.areSubtitleChangesSaved()){
+					if (subState.confirmDiscard()) {
 						gs.selectedVideo = v;
 					}
 				}
 			}
 			onchange={(e) => {
 				e.currentTarget.value = gs.selectedVideo; //This thing is necessary since bind doesn't reupdate
+				subState.reset();
 			}}
 		>
 			{#each Object.entries(context.videoLib).sort((a, b) => {

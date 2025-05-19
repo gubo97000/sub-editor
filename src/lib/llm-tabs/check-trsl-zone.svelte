@@ -7,7 +7,7 @@
 		globalStatus as gs,
 		localStoreRune
 	} from '../stores/globalStatus.svelte';
-	import { getSubState } from '../stores/subState.svelte';
+	import { subState } from '../stores/subState.svelte';
 
 	let fixArray = $state<HintListArray>([]);
 
@@ -25,7 +25,7 @@
 		lastSelectedModel: ''
 	})!; //componentPersistentState
 
-	const { subState } = getSubState();
+	// const { subState } = getSubState();
 
 	const componentPreamble = `You are an expert Finnish speaker, check for error or possible improvements in the following list of strings,
      INSTRUCTIONS:

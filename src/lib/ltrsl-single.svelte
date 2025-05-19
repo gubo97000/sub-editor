@@ -1,5 +1,5 @@
 <script>
-	import { getSubState } from './stores/subState.svelte';
+	import { subState } from './stores/subState.svelte';
 
 	/** @type {import('@langchain/core/messages').AIMessageChunk} */
 	let response = $state();
@@ -7,7 +7,7 @@
 	/** @type {{ chunkNumber: number }} */
 	let { chunkNumber } = $props();
 
-	const { subState } = getSubState();
+	// const { subState } = getSubState();
 
 	const clickHandler = async () => {
 		fetching = true;

@@ -6,7 +6,7 @@
 	import JSON5 from 'json5';
 	import JSZip from 'jszip';
 	import { parse } from 'svelte/compiler';
-	import { getSubState } from './stores/subState.svelte';
+	import { subState } from './stores/subState.svelte';
 	import { subtitleParser, whisperX2Srt } from './subs';
 	import { extractVideoId } from './utility';
 
@@ -27,7 +27,7 @@
 	let status = $state({ status: '', details: '' });
 	let jobFile = $state(null);
 
-	const subState = getSubState().subState;
+	// const subState = getSubState().subState;
 
 	// const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm';
 

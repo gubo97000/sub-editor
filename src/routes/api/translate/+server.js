@@ -37,7 +37,7 @@ export const POST = async ({ request }) => {
 	const AaltoConfig = {
 		configuration: {
 			baseURL: 'https://ai-gateway.k8s.aalto.fi/v1',
-			apiKey: AALTO_API_KEY
+			apiKey: AALTO_API_KEY,
 		},
 		// model: "depseek-r1-distill-qwen-14b",
 		model: "llama-3.1-8b-instruct-fp8-l4",
@@ -49,7 +49,9 @@ export const POST = async ({ request }) => {
 		// ...GlhfConfig,
 		apiKey: options?.apiKey ?? "",
 		temperature: 0.8,
-		verbose: true
+		openAIApiKey: options?.apiKey ?? "",
+		// timeout:900000000,
+		// verbose: true
 	});
 
 	console.log(data?.length);

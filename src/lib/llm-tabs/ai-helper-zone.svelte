@@ -8,7 +8,7 @@
 		globalStatus as gs,
 		localStoreRune
 	} from '../stores/globalStatus.svelte';
-	import { getSubState } from '../stores/subState.svelte';
+	import { subState } from '../stores/subState.svelte';
 
 	let fixArray = $state<HintListArray>([]);
 
@@ -48,7 +48,7 @@ HERE THE IMPERATIVE COMMANDS that you MUST follow:`;
 		note?: string;
 	}>;
 
-	const { subState } = getSubState();
+	// const { subState } = getSubState();
 
 	const fecthQuery = async (customOptions: {
 		model: typeof cLLME.value extends Record<any, infer V> ? V : never;

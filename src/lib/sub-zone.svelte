@@ -1,5 +1,5 @@
 <script>
-	import { getSubState, subStateSaved } from '$lib/stores/subState.svelte';
+	import { subState } from '$lib/stores/subState.svelte.js';
 
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { getContext } from 'svelte';
@@ -11,10 +11,10 @@
 	import TranscribeButton from './transcribeButton.svelte';
 	import { cueDoubleToTimeString, timeStringToCueDouble } from './utility.js';
 
-	const { subState } = getSubState();
+	// const { subState } = getSubState();
 	const c = getContext('videoLib');
 	const u = getContext('utils');
-	$inspect(subState);
+	$inspect(subState.subs);
 	/**
 	 * @typedef {Object} MyProps
 	 * @property {(time: number) => void} goToTime
@@ -85,10 +85,11 @@
 					<SubtitleSelect autoLoad={['en-US', 'en', 'auto']} index={0} />
 					<button
 						onclick={(e) => {
-							if(u.saveSubtitle(subState.subs[0], subState.video, e.target)){
-								subStateSaved.subs[0]= JSON.stringify(subState.subs[0])
+							if (u.saveSubtitle(subState.subs[0], subState.video, e.target)) {
+								subState.resetSavedState(0);
 							}
 						}}
+						disabled={subState.isSaved(0)}
 					>
 						Save
 					</button>
@@ -101,10 +102,11 @@
 					<SubtitleSelect autoLoad={['fi-FI', 'fi', 'auto']} index={1} />
 					<button
 						onclick={(e) => {
-							if(u.saveSubtitle(subState.subs[1], subState.video, e.target)){
-								subStateSaved.subs[1]= JSON.stringify(subState.subs[1])
+							if (u.saveSubtitle(subState.subs[1], subState.video, e.target)) {
+								subState.resetSavedState(1);
 							}
 						}}
+								disabled={subState.isSaved(1)}
 					>
 						Save
 					</button>

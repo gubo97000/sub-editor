@@ -2,10 +2,10 @@
 	import { onMount } from 'svelte';
 	import type { MouseEventHandler } from 'svelte/elements';
 	import type { VTTContent } from 'vidstack';
-	import { getSubState } from '../stores/subState.svelte';
+	import { subState } from '../stores/subState.svelte';
 
 
-	const { subState } = getSubState();
+	// const { subState } = getSubState();
 	const { subIndex = 0, hintList = [] } = $props();
 	let previewContainer: HTMLDivElement | undefined = $state();
 
@@ -240,20 +240,20 @@
 		event.preventDefault();
 		const errorSubString = hintList[hintIndex].errorString;
 		const fixedSubString = hintList[hintIndex].correctionString;
-		const original = (subState.subs[subIndex].content as VTTContent).cues[cueIndex].text;
+		const original = subState.subs[subIndex].content.cues[cueIndex].text;
 		// insertTextPreservingUndo(
 		// 	document.querySelector(event.currentTarget.getAttribute('data-cue-tag') ?? ''),
-		// 	(subState.subs[subIndex].content as VTTContent).cues?.[cueIndex].text.replace(
+		// 	subState.subs[subIndex].content.cues?.[cueIndex].text.replace(
 		// 		errorSubString,
 		// 		`${fixedSubString}`
 		// 	) ?? ''
 		// )
-		(subState.subs[subIndex].content as VTTContent).cues[cueIndex].text =
-			(subState.subs[subIndex].content as VTTContent).cues?.[cueIndex].text.replace(
+		subState.subs[subIndex].content.cues[cueIndex].text =
+			subState.subs[subIndex].content.cues?.[cueIndex].text.replace(
 				errorSubString,
 				`${fixedSubString}`
 			) ?? '';
-		if (original !== (subState.subs[subIndex].content as VTTContent).cues[cueIndex].text) {
+		if (original !== subState.subs[subIndex].content.cues[cueIndex].text) {
 			hintList[hintIndex].status = 'Applied';
 			previewContainer.innerHTML = '';
 			const el = document.querySelector(event.currentTarget.getAttribute('data-cue-tag') ?? '');

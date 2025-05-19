@@ -5,7 +5,7 @@
 //Copied from +page.svelte /panopto-folder
 	import { authedFetch } from '$lib/apiWrapper';
 	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
-	import { getSubState } from '$lib/stores/subState.svelte';
+	import { subState } from '$lib/stores/subState.svelte';
 
 	/**
 	 * Props for the TranscribeButton component.
@@ -27,7 +27,7 @@
 	let selectedPanoptoVideo = $state('');
 	let subToSaveKey = $state(presetSubtitleIndex?.toString());
 
-	const subState = getSubState().subState;
+	// const subState = getSubState().subState;
 
 	$inspect(ret, availableLanguages, errorMessage);
 

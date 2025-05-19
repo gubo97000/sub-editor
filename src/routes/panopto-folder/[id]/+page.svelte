@@ -127,7 +127,7 @@
 <ViewEdit />
 
 <Popover.Root bind:open={popoverOpen}>
-	<Popover.Trigger />
+	<!-- <Popover.Trigger /> -->
 	<Popover.Content customAnchor={popoverAnchor} interactOutsideBehavior="close" >
 	<p style="width:200px">
 		Use "Save in Panopto" for first save

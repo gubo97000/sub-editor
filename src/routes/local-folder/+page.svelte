@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { subStateSaved } from '$lib/stores/subState.svelte';
+	import { subState } from '$lib/stores/subState.svelte';
 	import { VTTToSrt } from '$lib/subs';
+	import type { VideoLibMethods } from '$lib/types';
 	import { verifyPermission } from '$lib/utility.js';
 	import ViewEdit from '$lib/view-edit.svelte';
 	import { fileSave } from 'browser-fs-access';
@@ -261,7 +262,7 @@
 
 	setContext('videoLib', context);
 
-	setContext('utils', {
+	setContext<VideoLibMethods>('utils', {
 		saveSubtitle,
 		loadVideoEntry,
 		loadSubtitles,
@@ -272,7 +273,8 @@
 <div>
 	<button
 		onclick={() => {
-			if (subStateSaved.areSubtitleChangesSaved()) {
+			if (subState.confirmDiscard()) {
+				console.log("wtf")
 				handleGetFolder();
 			}
 		}}>Open Folder</button

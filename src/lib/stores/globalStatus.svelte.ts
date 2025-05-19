@@ -35,10 +35,13 @@ import { LocalStorage } from './storage.svelte';
  * @template T
  * @param {string} key - The key under which the state is stored in localStorage.
  * @param {T} initialValue - The initial value to use if there is no value in localStorage.
- * @returns {T | undefined} The reactive state that is synchronized with localStorage.
+ * @returns {T} The reactive state that is synchronized with localStorage.
  */
-export function localStoreRune<T>(key: string, initialValue: T): T | undefined {
-	if (typeof localStorage === 'undefined') return;
+export function localStoreRune<T>(key: string, initialValue: T): T {
+	if (typeof localStorage === 'undefined') {
+		const state = $state(initialValue);
+		return state;
+	}
 	// Initialize the rune with the default value or value from localStorage
 	const localStoredState = localStorage.getItem(key);
 	const state = $state(localStoredState ? JSON.parse(localStoredState) : initialValue);

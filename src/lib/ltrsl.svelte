@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { customLLMEndpoints as cLLME, localStoreRune } from '$lib/stores/globalStatus.svelte';
 	import { sleep } from 'langchain/util/time';
-	import { getSubState } from './stores/subState.svelte';
+	import { subState } from './stores/subState.svelte';
 
 	let response = $state();
 	let fetchNum = $state(0);
 	let fetchEndNum = $state(0);
 
-	const { subState } = getSubState();
+	// const { subState } = getSubState();
 
 	let cps = localStoreRune<{
 		commands: string;
