@@ -7,6 +7,7 @@
 	import { subState } from '$lib/stores/subState.svelte';
 	import SubZone from '$lib/sub-zone.svelte';
 	import { getContext, onMount, setContext } from 'svelte';
+	import type { MediaPlayerElement } from 'vidstack/elements';
 	import 'vidstack/player';
 	import 'vidstack/player/layouts/plyr';
 	import 'vidstack/player/styles/base.css';
@@ -15,20 +16,21 @@
 	import AiHelperZone from './llm-tabs/ai-helper-zone.svelte';
 	import CustomModelsZone from './llm-tabs/custom-models-zone.svelte';
 	import TranslationOptions from './llm-tabs/translation-options.svelte';
+	import SubView from './sub-view.svelte';
 	import TranscribeButton from './transcribeButton.svelte';
 	// import type { MediaPlayerElement } from 'vidstack/elements';
 
 	// const { subState } = getSubState();
-	/** @type {import('vidstack/elements').MediaPlayerElement?} } */
-	let player = $state(null);
+	// $inspect(subState.subs);
 
-	/** @type {{ parsingErrors: { message: string }[] }} */
-	let alerts = $state({ parsingErrors: [] });
+	let player = $state<MediaPlayerElement | null>(null);
+	setContext('player', () => player);
+
+	let alerts = $state<{ parsingErrors: { message: string }[] }>({ parsingErrors: [] });
 	setContext('alerts', alerts);
 	$inspect(alerts, '🚨 alerts');
 
-	/** @type {FileList | null} */
-	let files = $state(null);
+	let files = $state<FileList | null>(null);
 	// /** @type {boolean} */
 	// let correctSub = $state(false);
 	// /** @type {boolean} */
@@ -79,19 +81,11 @@
 	});
 
 	const updateSubs = () => {
+		console.log('🟢 Updating Player Subtitles');
+		JSON.stringify(subState.subs); // This bullshit is necessary because svelte does not detect changes otherwise
+
 		if (!player) return;
-		// console.log(subState.subs);
-		Object.entries(subState.subs).forEach(([key, sub]) => {
-			if (sub.content) {
-				// console.log('sub', sub);
-				// console.log(sub.content);
-				// sub.content.cues.forEach((cue) => {
-				// 	console.log(cue.text);
-				// });
-				// console.log(sub.content.cues[0]);
-				// console.log(sub.content.cues[0].text);
-			}
-		});
+
 		let trackShowing =
 			player.textTracks.toArray().find((track) => {
 				return track.mode === 'showing';
@@ -169,7 +163,7 @@
 		// for (const track of textTracks) player.textTracks.add(track);
 
 		// Subscribe to state updates.
-		return player.subscribe(({ paused, viewType, currentTime, textTracks }) => {
+		player.subscribe(({ paused, viewType, currentTime, textTracks }) => {
 			gs.time = currentTime;
 
 			// console.log('is audio view?', '->', viewType === 'audio');
@@ -179,6 +173,9 @@
 			// console.log(res.data)
 			// console.log('current time', '->', currentTime);
 			// console.log(gs.time)
+		});
+		player.subscribe(({ duration }) => {
+			gs.player.duration = duration;
 		});
 		console.log(player?.src);
 	});
@@ -292,7 +289,8 @@
 			{/if}
 		</div>
 	</div>
-	<SubZone {goToTime} />
+	<SubView />
+	<!-- <SubZone {goToTime} /> -->
 </div>
 
 <style>

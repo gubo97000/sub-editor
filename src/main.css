@@ -23,6 +23,9 @@ button {
 	--primary-color-active: rgba(68, 233, 98, 0.48);
 	--secondary-color: rgba(36, 158, 58, 0.279);
 	--background-color: rgba(43, 216, 75, 0.096);
+
+	interpolate-size: allow-keywords;
+	transition: all 0.3s ease;
 }
 
 body {

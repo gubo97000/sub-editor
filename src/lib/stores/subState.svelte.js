@@ -24,13 +24,21 @@ export class SubState {
 
 	constructor() {
 		$effect.root(() => {
-		$inspect.trace('SubState');
-		console.log(this.subs,"🇫🇮")
-		this.subs;
+			$inspect.trace('SubState');
+			$inspect(this.subs, "🇫🇮 inspect")
+			console.log("🇫🇮 log")
+			// this.subs;
 		});
 	}
 
 	/** Snapshot current live subtitles into savedSubs. If index === null, saves all. */
+	/**
+	 * Resets the saved state of subs to match the current state.
+	 * If an index is provided, only the saved state for that index is updated.
+	 * Otherwise, updates the saved state for all subs.
+	 *
+	 * @param {number|null} [index=null] - The index of the sub to reset, or null to reset all.
+	 */
 	resetSavedState = (index = null) => {
 		if (index === null) {
 			for (const key in this.subs) {

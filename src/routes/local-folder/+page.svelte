@@ -2,7 +2,7 @@
 	import { subState } from '$lib/stores/subState.svelte';
 	import { VTTToSrt } from '$lib/subs';
 	import type { VideoLibMethods } from '$lib/types';
-	import { verifyPermission } from '$lib/utility.js';
+	import { verifyPermission } from '$lib/utility';
 	import ViewEdit from '$lib/view-edit.svelte';
 	import { fileSave } from 'browser-fs-access';
 	import { get, set } from 'idb-keyval';

@@ -87,7 +87,7 @@
 	const handleLoad = async () => {
 		console.log('starting load');
 		// const ffmpeg = new FFmpeg();
-		
+
 		ffmpeg.on('log', ({ message: msg }) => {
 			message = msg;
 			console.log(message);
@@ -171,18 +171,23 @@
 </script>
 
 <!-- <button onclick={handleLoad}>Load</button> -->
+<div>
+	<p>Panopto throws a CORS error, you need to download a CORS-allow extension</p>
+	<button onclick={handleClick}> Transcribe! </button>
 
-<p>Panopto throws a CORS error, you need to download a CORS-allow extension</p>
-<button onclick={handleClick}> Transcribe! </button>
+	{status.status}
+	{transcriptionId}
+	<p>
+		or drop here the file you obtained from <a
+			href="https://transcript.k8s.aalto.fi/"
+			target="_blank"
+		>
+			https://transcript.k8s.aalto.fi/
+		</a>
 
-{status.status}
-{transcriptionId}
-<p>
-	or drop here the file you obtained from <a
-		href="https://transcript.k8s.aalto.fi/"
-		target="_blank"
-	>
-		https://transcript.k8s.aalto.fi/
-	</a>
-</p>
-<input type="file" bind:files={jobFile} /> <button onclick={handleFileLoad}>Load File</button>
+		<input type="file" bind:files={jobFile} />
+		{#if jobFile}
+			<button onclick={handleFileLoad}>Load File</button>
+		{/if}
+	</p>
+</div>

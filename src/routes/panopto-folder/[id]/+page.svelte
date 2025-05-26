@@ -7,7 +7,7 @@
 		PANOPTO_LANGUAGE_CODES_TO_ID,
 		VTTToSrt
 	} from '$lib/subs.js';
-	import { extractVideoId } from '$lib/utility.js';
+	import { extractVideoId } from '$lib/utility';
 	import ViewEdit from '$lib/view-edit.svelte';
 	import { Popover } from 'bits-ui';
 	import { set } from 'idb-keyval';

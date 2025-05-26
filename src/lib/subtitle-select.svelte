@@ -119,6 +119,6 @@
 		<option value="_transcribe">Transcribe!</option>
 	{/if}
 	{#if index === 1}
-		<option value="_translate">Translate!</option>
+		<option value="_translate">New Subtitle</option>
 	{/if}
 </select>

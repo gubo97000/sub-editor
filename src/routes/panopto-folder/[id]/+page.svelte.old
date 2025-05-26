@@ -7,7 +7,7 @@
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import { getSubState } from '$lib/stores/subState.svelte';
 	import SubZone from '$lib/sub-zone.svelte';
-	import { verifyPermission } from '$lib/utility.js';
+	import { verifyPermission } from '$lib/utility';
 	import { directoryOpen, fileOpen, fileSave, supported } from 'browser-fs-access';
 	import { get, set } from 'idb-keyval';
 	import { parseByteStream, parseText } from 'media-captions';

@@ -9,12 +9,12 @@
 	import Ltrsl from './ltrsl.svelte';
 	import SubtitleSelect from './subtitle-select.svelte';
 	import TranscribeButton from './transcribeButton.svelte';
-	import { cueDoubleToTimeString, timeStringToCueDouble } from './utility.js';
+	import { cueDoubleToTimeString, timeStringToCueDouble } from './utility';
 
 	// const { subState } = getSubState();
 	const c = getContext('videoLib');
 	const u = getContext('utils');
-	$inspect(subState.subs);
+	// $inspect(subState.subs);
 	/**
 	 * @typedef {Object} MyProps
 	 * @property {(time: number) => void} goToTime

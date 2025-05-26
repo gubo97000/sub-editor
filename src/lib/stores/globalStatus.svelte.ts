@@ -115,6 +115,7 @@ export const globalStatus = localStoreRune(
 	'globalStatus',
 	/** @type {GlobalStatus} */ {
 		time: 0,
+		player: { duration: 0 },
 		selectedVideo: '',
 		transcriptionCorrections: [],
 		transcriptionCorrectionsRaw: [],

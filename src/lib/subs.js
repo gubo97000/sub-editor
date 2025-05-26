@@ -82,10 +82,10 @@ export const PANOPTO_LANGUAGE_CODES_REDUCED = [
     'Finnish',
 ]
 
-// 🔴
+
 export const PANOPTO_LANGUAGE_CODES_TO_ID = {
     'English_USA': 'en-US',
-    'English_GBR': 'en-US',// 🔴
+    'English_GBR': 'en-GBR',
     'Spanish_MEX': 'es-MX',
     'Spanish_ESP': 'es-ES',
     'German': 'de-DE',
