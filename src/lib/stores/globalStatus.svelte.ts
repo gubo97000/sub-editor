@@ -1,5 +1,6 @@
 // import { get } from "svelte/store";
 
+import type { CustomLLMEndpoints } from '$lib/types';
 import { LocalStorage } from './storage.svelte';
 
 // export function getGlobState() {
@@ -126,18 +127,7 @@ export const globalStatus = localStoreRune(
 // export const panoptoAuth = localStoreSyncRune("auth", { accessToken: "", refreshToken: "" });
 export const panoptoAuth = new LocalStorage('auth', { accessToken: '', refreshToken: '' });
 
-export const customLLMEndpoints = new LocalStorage<
-	Record<
-		string,
-		{
-			endpoint: string;
-			model: string;
-			apiKey: string;
-			commands: string;
-			chunkSize?: number;
-		}
-	>
->('customLLMEndpoints', {
+export const customLLMEndpoints = new LocalStorage<CustomLLMEndpoints>('customLLMEndpoints', {
 	default: {
 		endpoint: '',
 		model: '',

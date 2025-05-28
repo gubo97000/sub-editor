@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { globalStatus as gs } from '$lib/stores/globalStatus.svelte';
 	import type { VTTCueInit } from 'vidstack';
+	import LtrslSingle from './ltrsl-single.svelte';
 	import { subState } from './stores/subState.svelte';
 	import { cueDoubleToTimeString, timeStringToCueDouble, timeToCSSIdentifier } from './utility';
 
@@ -54,6 +55,7 @@
 
 		subState.subs[key].content.cues.splice(subState.subs[key].content.cues.indexOf(nextCue), 1);
 	};
+	// console.log(cue?.text?.includes('ErrorInChunk'),cue, 'cue');
 </script>
 
 <div
@@ -73,79 +75,83 @@
             // height:${((cue.endTime - cue.startTime) / gs.player.duration) * 100}%;
             `}
 >
-	<div
-		class="cue-text"
-		onkeydown={(e) => handleSplit(e, cueIndex, key)}
-		contenteditable="true"
-		role="textbox"
-		tabindex="0"
-		bind:textContent={cue.text}
-	></div>
-	<div>
-		<button
-			class="cue-merge"
-			onclick={(e) => {
-				e.currentTarget.innerText = 'Double Click to merge with next cue (will skip empty spots)';
-			}}
+	{#if cue?.text?.includes('ErrorInChunk')}
+		<LtrslSingle chunkNumber={Number(cue.text.split('-')[1])} />
+	{:else}
+		<div
+			class="cue-text"
+			onkeydown={(e) => handleSplit(e, cueIndex, key)}
+			contenteditable="true"
+			role="textbox"
+			tabindex="0"
+			bind:textContent={cue.text}
+		></div>
+		<div>
+			<button
+				class="cue-merge"
+				onclick={(e) => {
+					e.currentTarget.innerText = 'Double Click to merge with next cue (will skip empty spots)';
+				}}
+				onfocusout={(e) => {
+					e.currentTarget.innerText = '+';
+				}}
+				ondblclick={(e) => {
+					handleMerge(e, cueIndex, key);
+					e.currentTarget.innerText = '+';
+				}}
+			>
+				+
+			</button>
+		</div>
+		<div>
+			<button
+				class="cue-delete"
+				onclick={(e) => {
+					e.currentTarget.innerText = 'Double Click to Delete';
+				}}
+				onfocusout={(e) => {
+					e.currentTarget.innerText = 'X';
+				}}
+				ondblclick={(e) => {
+					subState.subs[key].content.cues.splice(cueIndex, 1);
+					subState.resetSavedState(key);
+				}}
+			>
+				X
+			</button>
+		</div>
+		<div
+			class="start cue-time"
+			contenteditable="true"
 			onfocusout={(e) => {
-				e.currentTarget.innerText = '+';
+				cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
 			}}
-			ondblclick={(e) => {
-				handleMerge(e, cueIndex, key);
-				e.currentTarget.innerText = '+';
-			}}
-		>
-			+
-		</button>
-	</div>
-	<div>
-		<button
-			class="cue-delete"
-			onclick={(e) => {
-				e.currentTarget.innerText = 'Double Click to Delete';
-			}}
-			onfocusout={(e) => {
-				e.currentTarget.innerText = 'X';
-			}}
-			ondblclick={(e) => {
-				subState.subs[key].content.cues.splice(cueIndex, 1);
-				subState.resetSavedState(key);
-			}}
-		>
-			X
-		</button>
-	</div>
-	<div
-		class="start cue-time"
-		contenteditable="true"
-		onfocusout={(e) => {
-			cue.startTime = timeStringToCueDouble(e.currentTarget.innerText);
-		}}
-		bind:textContent={
-			() => {
-				cue.startTime ? cue.startTime : 0;
-				return cueDoubleToTimeString(cue.startTime);
-			},
-			() => {}
-		}
-		aria-label="start cue-time"
-	></div>
+			bind:textContent={
+				() => {
+					cue.startTime ? cue.startTime : 0;
+					return cueDoubleToTimeString(cue.startTime);
+				},
+				() => {}
+			}
+			aria-label="start cue-time"
+		></div>
 
-	<div
-		class="end cue-time"
-		contenteditable="true"
-		onfocusout={(e) => {
-			cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
-		}}
-		bind:textContent={
-			() => {
-				cue.endTime ? cue.endTime : 0;
-				return cueDoubleToTimeString(cue.endTime);
-			},
-			() => {}
-		}
-		aria-label="end cue-time"
-	></div>
+		<div
+			class="end cue-time"
+			contenteditable="true"
+			onfocusout={(e) => {
+				cue.endTime = timeStringToCueDouble(e.currentTarget.innerText);
+			}}
+			bind:textContent={
+				() => {
+					cue.endTime ? cue.endTime : 0;
+					return cueDoubleToTimeString(cue.endTime);
+				},
+				() => {}
+			}
+			aria-label="end cue-time"
+		></div>
+	{/if}
 </div>
 
 <style>
@@ -157,6 +163,7 @@
 		/* margin-top: 0px; */
 		padding: 8px;
 		position: relative;
+		z-index: 0;
 
 		&::before {
 			/* border: 1px solid gray; */
@@ -167,18 +174,23 @@
 			position: absolute;
 			top: -20%;
 			left: -5%;
-			z-index: 99;
+			z-index: 95;
+		}
+		& * {
+			z-index: 100;
 		}
 
 		&:hover,
 		&:focus-within {
-			z-index: 100;
+			& * {
+				z-index: 100;
+			}
+
 			.cue-time,
 			.cue-merge,
 			.cue-text,
 			.cue-delete {
 				display: block;
-				z-index: 100;
 			}
 		}
 		&:hover {

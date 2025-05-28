@@ -80,7 +80,15 @@ export function extractVideoId(url: string) {
 	return match ? match[1] : null;
 }
 
-export function insertTextPreservingUndo(textarea: { selectionStart: any; selectionEnd: any; dispatchEvent: (arg0: InputEvent) => void; value: string; }, text: string | any[]) {
+export function insertTextPreservingUndo(
+	textarea: {
+		selectionStart: any;
+		selectionEnd: any;
+		dispatchEvent: (arg0: InputEvent) => void;
+		value: string;
+	},
+	text: string | any[]
+) {
 	// Store current selection
 	const start = textarea.selectionStart;
 	const end = textarea.selectionEnd;

@@ -231,9 +231,9 @@
 
 		{#each Object.entries(subState.subs) as [key, value]}
 			{#each value?.content.cues as cue, cueIndex}
-				{#if cue?.text.includes('ErrorInChunk')}
+				<!-- {#if cue?.text.includes('ErrorInChunk')}
 					<LtrslSingle chunkNumber={cue.text.split('-')[1]} />
-				{/if}
+				{/if} -->
 				<SubViewCue {cue} {cueIndex} {key} />
 			{/each}
 		{/each}

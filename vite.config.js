@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import fs from 'fs';
 import { vite as vidstack } from 'vidstack/plugins';
+import devtoolsJson from 'vite-plugin-devtools-json';
 import { defineConfig } from 'vitest/config';
 
 let httpsConfig = process.env.NODE_ENV === "development" ? {
@@ -9,7 +10,7 @@ let httpsConfig = process.env.NODE_ENV === "development" ? {
 } : undefined;
 
 export default defineConfig({
-	plugins: [sveltekit(), vidstack()],
+	plugins: [sveltekit(), vidstack(), devtoolsJson()],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']
 	},

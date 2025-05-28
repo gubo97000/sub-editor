@@ -26,7 +26,7 @@
 			}
 
 			// Fetch each chunk in parallel
-			const promises = fetch('/api/translate', {
+			const promises = fetch('/api/translate-stream', {
 				method: 'POST',
 				body: JSON.stringify(chunks[chunkNumber])
 			}).then((res) => {

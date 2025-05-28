@@ -13,6 +13,7 @@
 	import 'vidstack/player/styles/base.css';
 	import 'vidstack/player/styles/plyr/theme.css';
 	import 'vidstack/player/ui';
+	import LlmQueryZone from './llm-query-zone.svelte';
 	import AiHelperZone from './llm-tabs/ai-helper-zone.svelte';
 	import CustomModelsZone from './llm-tabs/custom-models-zone.svelte';
 	import TranslationOptions from './llm-tabs/translation-options.svelte';
@@ -189,7 +190,7 @@
 </script>
 
 <div class="container">
-	<div style="position:sticky; top:0; display:flex; flex-direction: column; height:100%;">
+	<div style="padding: 0px 8px;position:sticky; top:0; display:flex; flex-direction: column; height:100%;">
 		<select
 			bind:value={
 				() => gs.selectedVideo,
@@ -222,7 +223,7 @@
 		<!-- <details open={!subState.subs?.["en-US"]}> -->
 
 		<br />
-
+		<LlmQueryZone />
 		<div style="display:flex">
 			<button
 				class={`tab-button ${showTab === 'customModels' && 'activeTab'}`}
