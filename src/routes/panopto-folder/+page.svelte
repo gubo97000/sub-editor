@@ -1,6 +1,7 @@
 <!-- https://aalto.cloud.panopto.eu/Panopto/Api/Folders?parentId=null&folderSet=3&includeMyFolder=false&includePersonalFolders=true&page=0&sort=Depth&names%5B0%5D=SessionCount -->
 <script>
 	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
+	import { isExpired } from '$lib/utility';
 	let ret = $state([]);
 
 	// "https://aalto.cloud.panopto.eu/Panopto/Pages/Transcription/GenerateSRT.ashx?id=ba16432b-aa6d-4a84-abbc-b274007767ef&language=English_GBR"
@@ -58,15 +59,18 @@
 </script>
 
 <div>
-	{#each ret as ret}
-		{#if ret.SessionCount > 0}
-			<a href="/panopto-folder/{ret.Id}" data-sveltekit-preload-data="tap">
-				<p>{ret.Name} {ret.SessionCount}</p>
-			</a>
-		{/if}
-	{/each}
+	{#if pA.value?.accessToken && isExpired(pA.value?.decodedToken?.exp)}
+		{#each ret as ret}
+			{#if ret.SessionCount > 0}
+				<a href="/panopto-folder/{ret.Id}" data-sveltekit-preload-data="tap">
+					<p>{ret.Name} {ret.SessionCount}</p>
+				</a>
+			{/if}
+		{/each}
+	{:else}
+		<p>Please log in to view Panopto folders.</p>
+	{/if}
 </div>
 
 <style>
-	
 </style>

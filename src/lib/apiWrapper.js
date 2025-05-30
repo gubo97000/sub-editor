@@ -1,4 +1,5 @@
 import { PUBLIC_BASE_URL, PUBLIC_PANOPTO_URL } from '$env/static/public';
+import { error } from '@sveltejs/kit';
 const clientId = encodeURIComponent(atob('Yzk0NTE3ZWItYzBjNy00ODJiLTkwNzctYjFmMDAwMDg1ODYz')); //in base64 just for obfuscating
 const redirectURI = encodeURI(PUBLIC_BASE_URL + '/callback');
 const scopes = encodeURIComponent('api'); // give us the id_token and the refresh token, please
@@ -22,7 +23,7 @@ export const handleFetchResult = async (res) => {
  * @param {RequestInit} [options={}] - Optional fetch options.
  * @returns {Promise<Response>} - The fetch response.
  */
-export const authedFetch = async (endpoint, options={}) => {
+export const authedFetch = async (endpoint, options = {}) => {
     console.log("authedFetch")
     const response = await fetch(endpoint, {
         method: 'GET',
@@ -37,12 +38,7 @@ export const authedFetch = async (endpoint, options={}) => {
     if (!response.ok && window) {
         switch (response.status) {
             case 401:
-                if (
-                    window.confirm("Authenticate in Panopto (allow popups on this site)")
-                ) {
-                    window.open(AUTH_ENDPOINT, '_blank');
-                }
-                break;
+                error(401, 'Panopto authentication error. Please re-authenticate.');
 
             default:
                 throw new Error(`Response status: ${response.status}`);

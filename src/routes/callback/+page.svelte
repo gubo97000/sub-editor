@@ -1,7 +1,9 @@
 <script>
 	import { PUBLIC_PANOPTO_URL } from '$env/static/public';
 	import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
+	import { parseJwt } from '$lib/utility';
 	import { onMount } from 'svelte';
+	import { parse } from 'svelte/compiler';
 	let stateText = $state('Processing...');
 	
 	onMount(() => {
@@ -15,6 +17,7 @@
 		}
 		if (newAccessToken) {
 			pA.value.accessToken = newAccessToken;
+			pA.value.decodedToken =  parseJwt(newAccessToken);
 			// localStorage.setItem('access_token', newAccessToken);
 			stateText = 'access token found, setting cookie';
 			// fetch('/api/v1/getCookie',{

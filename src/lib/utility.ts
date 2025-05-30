@@ -152,3 +152,25 @@ export const exportSub = (sub: TextTrackInit, format: 'srt' | 'txt' = 'srt') => 
 export const timeToCSSIdentifier = (n: number) => {
 	return `_${n}`.replace('.', '-');
 };
+
+export const parseJwt=(token:string)=> {
+		if (token == '') {
+			return;
+		}
+		var base64Url = token.split('.')[1];
+		var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+		var jsonPayload = decodeURIComponent(
+			atob(base64)
+				.split('')
+				.map(function (c) {
+					return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+				})
+				.join('')
+		);
+		console.log('jsonPayload', jsonPayload);
+		return JSON.parse(jsonPayload);
+	}
+
+export const isExpired = (unixTime:number) => {
+	return Date.now()/1000 < unixTime
+}

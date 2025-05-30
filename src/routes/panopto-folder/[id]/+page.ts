@@ -1,8 +1,11 @@
 import { authedFetch } from '$lib/apiWrapper';
+import type { PageLoad } from './$types';
+
+
 export const prerender = false;
 export const ssr = false;
 // import { panoptoAuth as pA } from '$lib/stores/globalStatus.svelte';
-export const load = async ({ params }) => {
+export const load:PageLoad = async ({ params }) => {
     const fetchFolderContent = async (folderId = "", index = 0) => {
         const res = await authedFetch(
             `/api/v1/proxy/api/v1/folders/${folderId}/sessions?pageNumber=${index}`, //without page number will loop forever

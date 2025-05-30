@@ -1,10 +1,11 @@
 <script>
+	import { page } from '$app/state';
 	import AuthButton from '$lib/auth.svelte';
 </script>
 
 <div>
 	<div>
-		<AuthButton />
+		<AuthButton refreshAfterLogin={page.status === 401 ? true : false} />
 	</div>
 </div>
 <slot />
@@ -21,7 +22,5 @@
 		--primary-color-hover: rgba(69, 165, 255, 0.8);
 		--primary-color-active: rgba(69, 165, 255, 0.48);
 		--background-color: rgba(0, 221, 255, 0.108);
-
 	}
-
 </style>

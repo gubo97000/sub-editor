@@ -5,7 +5,7 @@
 	import {
 		customLLMEndpoints as cLLME,
 		globalStatus as gs,
-		localStoreRune
+		sessionStorageRune
 	} from '../stores/globalStatus.svelte';
 	import { subState } from '../stores/subState.svelte';
 
@@ -13,7 +13,7 @@
 
 	let fetchNum = $state(0);
 	let fetchEndNum = $state(0);
-	let cps = localStoreRune<{
+	let cps = sessionStorageRune<{
 		transcriptionCorrectionsRaw: string[];
 		transcriptionCorrections: HintListArray;
 		commands: string;
